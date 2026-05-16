@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VOX Studio — Brand Identity & Web Development</title>
+<meta name="description" content="VOX Studio crafts premium brand identities, print systems, and high-performance web products. Selected case studies in graphic design and web development." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500&family=Archivo:wght@500;700;800&family=Inter+Tight:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Serif&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SITE CONFIG — only edit values inside this block
+     ═══════════════════════════════════════════════════════ -->
+<script>
+window.PortfolioConfig = {
+
+  // ▼ SET YOUR ADMIN PASSWORD HERE ▼
+  adminPasscode: "OP0990OP",
+  // ▲ SET YOUR ADMIN PASSWORD HERE ▲
+
+  adminEnabled:  true,   // set false to hide admin entirely
+  tweaksEnabled: true,   // set false to hide the tweaks panel
+};
+</script>
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"    crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"    crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="hero.jsx"></script>
+<script type="text/babel" src="graphic-page.jsx"></script>
+<script type="text/babel" src="webdev-page.jsx"></script>
+<script type="text/babel" src="case-sheet.jsx"></script>
+<script type="text/babel" src="content.jsx"></script>
+<script type="text/babel" src="admin-panel.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

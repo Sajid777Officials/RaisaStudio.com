@@ -1,0 +1,15 @@
+{
+  "name": "vox-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "npm run build",
+    "preview": "node scripts/preview.mjs dist",
+    "dev": "node scripts/preview.mjs ."
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12"
+  }
+}

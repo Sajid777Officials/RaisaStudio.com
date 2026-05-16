@@ -1,0 +1,1079 @@
+// Static admin panel for editing portfolio content in-browser.
+const ADMIN_SESSION_KEY = "vox-portfolio-admin-session";
+const ADMIN_TAB_KEY = "vox-portfolio-admin-tab";
+const ADMIN_UPLOADS_KEY = "vox-portfolio-uploads";
+
+const ADMIN_THUMBS = {
+  graphic: ["Packaging", "Poster", "Brand", "Social"],
+  webdev: ["Dashboard", "WebApp", "Code"],
+};
+
+// ─── Image upload helpers ─────────────────────────────────────────────────────
+function adminReadFile(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 3 * 1024 * 1024) { reject(new Error("File exceeds 3 MB")); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function adminFormatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1024 / 1024).toFixed(2) + " MB";
+}
+
+function adminLoadUploads() {
+  try { return JSON.parse(localStorage.getItem(ADMIN_UPLOADS_KEY) || "[]"); } catch(e) { return []; }
+}
+
+function adminSaveUploads(uploads) {
+  try { localStorage.setItem(ADMIN_UPLOADS_KEY, JSON.stringify(uploads)); } catch(e) {}
+}
+
+// ─── AdminImageUpload control ─────────────────────────────────────────────────
+function AdminImageUpload({ label = "Thumbnail image", value, onChange }) {
+  const [drag, setDrag] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [showPicker, setShowPicker] = React.useState(false);
+  const inputRef = React.useRef();
+
+  const handle = async (file) => {
+    if (!file || !file.type.startsWith("image/")) { alert("Please select an image file."); return; }
+    setLoading(true);
+    try {
+      const data = await adminReadFile(file);
+      // Save to uploads library
+      const uploads = adminLoadUploads();
+      const entry = { id: "up_" + Date.now(), name: file.name, size: file.size, mimeType: file.type, data, uploadedAt: new Date().toISOString() };
+      adminSaveUploads([entry, ...uploads]);
+      onChange(data);
+    } catch(err) { alert(err.message); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="admin-field admin-image-field">
+      <span>{label}</span>
+      {value ? (
+        <div className="admin-image-preview-wrap">
+          <img src={value} alt="preview" className="admin-image-preview" />
+          <div className="admin-image-actions">
+            <button type="button" className="admin-mini-button" onClick={() => inputRef.current.click()}>Replace</button>
+            <button type="button" className="admin-mini-button" onClick={() => setShowPicker(!showPicker)}>
+              {showPicker ? "Hide library" : "Pick from library"}
+            </button>
+            <button type="button" className="admin-mini-button danger" onClick={() => onChange("")}>Remove</button>
+            <input ref={inputRef} type="file" accept="image/*" style={{display:"none"}} onChange={(e) => handle(e.target.files[0])} />
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`admin-upload-zone${drag ? " drag" : ""}`}
+          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(e) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer.files[0]); }}
+        >
+          <input type="file" accept="image/*" onChange={(e) => handle(e.target.files[0])} />
+          <div className="admin-upload-icon">🖼</div>
+          <div className="admin-upload-hint">
+            {loading ? "Processing…" : "Drop image or click · PNG, JPG, WebP, SVG · max 3 MB"}
+          </div>
+          <button type="button" className="admin-mini-button" onClick={() => setShowPicker(!showPicker)} style={{marginTop:8}}>
+            {showPicker ? "Hide library" : "Pick from library"}
+          </button>
+        </div>
+      )}
+
+      {showPicker && (
+        <AdminImagePicker current={value} onPick={(v) => { onChange(v); setShowPicker(false); }} />
+      )}
+    </div>
+  );
+}
+
+// ─── Library picker (inline) ──────────────────────────────────────────────────
+function AdminImagePicker({ current, onPick }) {
+  const uploads = adminLoadUploads();
+  if (!uploads.length) {
+    return <p style={{fontSize:11, color:"rgba(255,255,255,.4)", marginTop:8, fontFamily:"monospace"}}>No uploads yet — upload an image above first.</p>;
+  }
+  return (
+    <div className="admin-image-picker">
+      {uploads.map((u) => (
+        <button
+          key={u.id} type="button"
+          className={"admin-pick-thumb" + (u.data === current ? " active" : "")}
+          onClick={() => onPick(u.data)}
+          title={u.name}
+        >
+          <img src={u.data} alt={u.name} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Uploads gallery page (full tab) ─────────────────────────────────────────
+function AdminUploadsPage({ setStatus }) {
+  const [uploads, setUploads] = React.useState(adminLoadUploads);
+  const [drag, setDrag] = React.useState(false);
+
+  const refresh = (list) => { adminSaveUploads(list); setUploads(list); };
+
+  const addFiles = async (files) => {
+    const results = [];
+    for (const f of Array.from(files)) {
+      if (!f.type.startsWith("image/")) { setStatus(`${f.name} is not an image`, true); continue; }
+      try {
+        const data = await adminReadFile(f);
+        results.push({ id: "up_" + Date.now() + Math.random().toString(36).slice(2), name: f.name, size: f.size, mimeType: f.type, data, uploadedAt: new Date().toISOString() });
+      } catch(err) { setStatus(err.message, true); }
+    }
+    if (results.length) {
+      refresh([...results, ...uploads]);
+      setStatus(`${results.length} file${results.length > 1 ? "s" : ""} uploaded.`);
+    }
+  };
+
+  const del = (id) => {
+    if (!window.confirm("Delete this upload?")) return;
+    refresh(uploads.filter((u) => u.id !== id));
+    setStatus("Upload deleted.");
+  };
+
+  return (
+    <div className="admin-stack">
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Uploads Library</h3>
+            <span>Images stored in browser storage · {uploads.length} file{uploads.length !== 1 ? "s" : ""}</span>
+          </div>
+        </div>
+
+        <div
+          className={`admin-upload-zone admin-upload-zone-lg${drag ? " drag" : ""}`}
+          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(e) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}
+        >
+          <input type="file" accept="image/*" multiple onChange={(e) => addFiles(e.target.files)} />
+          <div className="admin-upload-icon">📁</div>
+          <div className="admin-upload-hint">Drop images here or click to browse · PNG, JPG, WebP, SVG, GIF · Max 3 MB each · Multiple files OK</div>
+        </div>
+
+        {uploads.length === 0 ? (
+          <div className="admin-empty"><p>No uploads yet. Drag images above to get started.</p></div>
+        ) : (
+          <div className="admin-uploads-grid">
+            {uploads.map((u) => (
+              <div key={u.id} className="admin-upload-card">
+                <img src={u.data} alt={u.name} className="admin-upload-img" />
+                <div className="admin-upload-meta">
+                  <div className="admin-upload-name" title={u.name}>{u.name}</div>
+                  <div className="admin-upload-size">{adminFormatBytes(u.size)} · {(u.mimeType || "").split("/")[1]?.toUpperCase()}</div>
+                  <div className="admin-upload-size">{new Date(u.uploadedAt).toLocaleDateString()}</div>
+                </div>
+                <div className="admin-upload-card-actions">
+                  <button type="button" className="admin-mini-button" onClick={() => {
+                    navigator.clipboard.writeText(u.data)
+                      .then(() => setStatus("Image data URL copied."))
+                      .catch(() => setStatus("Copy failed.", true));
+                  }}>Copy URL</button>
+                  <button type="button" className="admin-mini-button danger" onClick={() => del(u.id)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="admin-note">
+          localStorage limit is ~5 MB. For many large images, host them externally and paste the URL into the image field instead.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function adminHash(value) {
+  let hash = 5381;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) + hash) ^ value.charCodeAt(index);
+  }
+  return String(hash >>> 0);
+}
+
+function adminClone(value) {
+  return window.PortfolioContent.clone(value);
+}
+
+function adminNormalize(value) {
+  return window.PortfolioContent.normalize
+    ? window.PortfolioContent.normalize(value)
+    : adminClone(value);
+}
+
+function moveArrayItem(items, index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= items.length) return items;
+  const next = [...items];
+  const [item] = next.splice(index, 1);
+  next.splice(target, 0, item);
+  return next;
+}
+
+function AdminText({ label, value, onChange, textarea = false, type = "text", placeholder = "" }) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      {textarea ? (
+        <>
+          <textarea value={value || ""} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+          <span className="admin-char-count">{(value || "").length} chars</span>
+        </>
+      ) : (
+        <input type={type} value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+      )}
+    </label>
+  );
+}
+
+function AdminSelect({ label, value, options, onChange }) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <select className="admin-select" value={value ?? ""} onChange={(event) => onChange(event.target.value)}>
+        {options.map((option) => {
+          const value = typeof option === "string" ? option : option.value;
+          const label = typeof option === "string" ? option : option.label;
+          return <option key={value} value={value}>{label}</option>;
+        })}
+      </select>
+    </label>
+  );
+}
+
+function AdminNumber({ label, value, min = 0, max = 12, onChange }) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value ?? ""}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
+function AdminPasswordField({ label, value, onChange }) {
+  const [show, setShow] = React.useState(false);
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <div className="admin-password-wrap">
+        <input
+          type={show ? "text" : "password"}
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete="current-password"
+        />
+        <button type="button" className="admin-password-toggle" onClick={() => setShow(s => !s)} tabIndex={-1}>
+          {show ? "Hide" : "Show"}
+        </button>
+      </div>
+    </label>
+  );
+}
+
+function AdminPaletteSelect({ label, value, onChange, side = "graphic" }) {
+  const shared = window.PortfolioShared || {};
+  const palettes = side === "webdev"
+    ? (shared.WEBDEV_PALETTES || [])
+    : (shared.GRAPHIC_PALETTES || []);
+  if (!palettes.length) {
+    return <AdminNumber label={label} value={value} min={0} max={5} onChange={onChange} />;
+  }
+  return (
+    <div className="admin-field">
+      <span>{label}</span>
+      <div className="admin-palette-row">
+        {palettes.map((palette, i) => (
+          <button
+            key={i}
+            type="button"
+            title={`Palette ${i}`}
+            className={"admin-palette-btn" + (Number(value) === i ? " active" : "")}
+            onClick={() => onChange(i)}
+          >
+            {palette.slice(0, 3).map((color, ci) => (
+              <span key={ci} style={{ background: color }}></span>
+            ))}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminRowActions({ index, length, onMove, onRemove }) {
+  return (
+    <div className="admin-row-actions">
+      <button type="button" className="admin-mini-button" disabled={index === 0} onClick={() => onMove(index, -1)}>Up</button>
+      <button type="button" className="admin-mini-button" disabled={index === length - 1} onClick={() => onMove(index, 1)}>Down</button>
+      <button type="button" className="admin-mini-button danger" onClick={() => onRemove(index)}>Remove</button>
+    </div>
+  );
+}
+
+function AdminStatEditor({ title, stats = [], onChange }) {
+  const updateStat = (index, key, value) => {
+    const next = [...stats];
+    next[index] = { ...next[index], [key]: value };
+    onChange(next);
+  };
+  const addStat = () => onChange([...stats, { value: "0", suffix: "", label: "Metric" }]);
+  const removeStat = (index) => onChange(stats.filter((_, itemIndex) => itemIndex !== index));
+  const moveStat = (index, direction) => onChange(moveArrayItem(stats, index, direction));
+
+  return (
+    <div className="admin-subsection">
+      <div className="admin-subsection-head">
+        <h4>{title}</h4>
+        <button type="button" className="admin-mini-button" onClick={addStat}>Add metric</button>
+      </div>
+      <div className="admin-mini-grid">
+        {stats.map((stat, index) => (
+          <div className="admin-mini-card" key={`${stat.label}-${index}`}>
+            <AdminText label="Value" value={stat.value} onChange={(value) => updateStat(index, "value", value)} />
+            <AdminText label="Suffix" value={stat.suffix} onChange={(value) => updateStat(index, "suffix", value)} />
+            <AdminText label="Label" value={stat.label} onChange={(value) => updateStat(index, "label", value)} />
+            <AdminRowActions index={index} length={stats.length} onMove={moveStat} onRemove={removeStat} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminKeyValueEditor({ title, rows = [], onChange, keyLabel = "Label", valueLabel = "Value" }) {
+  const updateRow = (index, part, value) => {
+    const next = rows.map((row) => [...row]);
+    next[index][part] = value;
+    onChange(next);
+  };
+  const addRow = () => onChange([...rows, ["Label", "Value"]]);
+  const removeRow = (index) => onChange(rows.filter((_, itemIndex) => itemIndex !== index));
+  const moveRow = (index, direction) => onChange(moveArrayItem(rows, index, direction));
+
+  return (
+    <div className="admin-subsection">
+      <div className="admin-subsection-head">
+        <h4>{title}</h4>
+        <button type="button" className="admin-mini-button" onClick={addRow}>Add row</button>
+      </div>
+      <div className="admin-list">
+        {rows.map((row, index) => (
+          <div className="admin-row-card kv" key={`${row[0]}-${index}`}>
+            <AdminText label={keyLabel} value={row[0]} onChange={(value) => updateRow(index, 0, value)} />
+            <AdminText label={valueLabel} value={row[1]} onChange={(value) => updateRow(index, 1, value)} />
+            <AdminRowActions index={index} length={rows.length} onMove={moveRow} onRemove={removeRow} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminResultEditor({ results = [], onChange }) {
+  const updateResult = (index, part, value) => {
+    const next = results.map((result) => [...result]);
+    next[index][part] = value;
+    onChange(next);
+  };
+  const addResult = () => onChange([...results, ["0", "", "Result"]]);
+  const removeResult = (index) => onChange(results.filter((_, itemIndex) => itemIndex !== index));
+  const moveResult = (index, direction) => onChange(moveArrayItem(results, index, direction));
+
+  return (
+    <div className="admin-subsection">
+      <div className="admin-subsection-head">
+        <h4>Results</h4>
+        <button type="button" className="admin-mini-button" onClick={addResult}>Add result</button>
+      </div>
+      <div className="admin-mini-grid">
+        {results.map((result, index) => (
+          <div className="admin-mini-card" key={`${result[2]}-${index}`}>
+            <AdminText label="Number" value={result[0]} onChange={(value) => updateResult(index, 0, value)} />
+            <AdminText label="Suffix" value={result[1]} onChange={(value) => updateResult(index, 1, value)} />
+            <AdminText label="Label" value={result[2]} onChange={(value) => updateResult(index, 2, value)} />
+            <AdminRowActions index={index} length={results.length} onMove={moveResult} onRemove={removeResult} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminTechStackEditor({ stack = [], onChange }) {
+  const updateItem = (index, value) => {
+    const next = [...stack];
+    next[index] = value;
+    onChange(next);
+  };
+  const addItem = () => onChange([...stack, "New tool"]);
+  const removeItem = (index) => onChange(stack.filter((_, itemIndex) => itemIndex !== index));
+  const moveItem = (index, direction) => onChange(moveArrayItem(stack, index, direction));
+
+  return (
+    <div className="admin-subsection">
+      <div className="admin-subsection-head">
+        <h4>Tech stack rail</h4>
+        <button type="button" className="admin-mini-button" onClick={addItem}>Add tool</button>
+      </div>
+      <div className="admin-list">
+        {stack.map((tool, index) => (
+          <div className="admin-row-card stack" key={`${tool}-${index}`}>
+            <AdminText label="Tool" value={tool} onChange={(value) => updateItem(index, value)} />
+            <AdminRowActions index={index} length={stack.length} onMove={moveItem} onRemove={removeItem} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminStudioEditor({
+  side,
+  draft,
+  updateStudio,
+  updateStudioStats,
+  updateService,
+  addService,
+  removeService,
+  moveService,
+  updateWork,
+  addWork,
+  removeWork,
+  moveWork,
+}) {
+  const studio = draft.studios[side];
+  const services = draft.services[side] || [];
+  const works = draft.works[side] || [];
+  const label = side === "graphic" ? "Graphic Studio" : "Web Studio";
+  const thumbOptions = ADMIN_THUMBS[side];
+
+  return (
+    <div className="admin-stack">
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>{label}</h3>
+            <span>Hero, page copy, stats, and CTA text</span>
+          </div>
+        </div>
+        <div className="admin-grid two">
+          <AdminText label="Hero eyebrow" value={studio.heroEyebrow} onChange={(value) => updateStudio(side, "heroEyebrow", value)} />
+          <AdminText label="Hero CTA" value={studio.heroCta} onChange={(value) => updateStudio(side, "heroCta", value)} />
+          <AdminText label="Hero top line" value={studio.heroTitleTop} onChange={(value) => updateStudio(side, "heroTitleTop", value)} />
+          <AdminText label="Hero italic line" value={studio.heroTitleEm} onChange={(value) => updateStudio(side, "heroTitleEm", value)} />
+          <AdminText label="Hero suffix" value={studio.heroTitleSuffix} onChange={(value) => updateStudio(side, "heroTitleSuffix", value)} />
+          <AdminText label="Page eyebrow" value={studio.pageEyebrow} onChange={(value) => updateStudio(side, "pageEyebrow", value)} />
+        </div>
+        <AdminText label="Hero description" value={studio.heroSub} textarea onChange={(value) => updateStudio(side, "heroSub", value)} />
+        <AdminStatEditor title="Hero stats" stats={studio.heroStats || []} onChange={(stats) => updateStudioStats(side, "heroStats", stats)} />
+        <div className="admin-grid two">
+          <AdminText label="Page title prefix" value={studio.pageTitlePre} onChange={(value) => updateStudio(side, "pageTitlePre", value)} />
+          <AdminText label="Page title italic word" value={studio.pageTitleEm} onChange={(value) => updateStudio(side, "pageTitleEm", value)} />
+          <AdminText label="Page title suffix" value={studio.pageTitlePost} onChange={(value) => updateStudio(side, "pageTitlePost", value)} />
+          <AdminText label="Page title second line" value={studio.pageTitleSecond} onChange={(value) => updateStudio(side, "pageTitleSecond", value)} />
+        </div>
+        <AdminText label="Page intro" value={studio.pageLede} textarea onChange={(value) => updateStudio(side, "pageLede", value)} />
+        <AdminStatEditor title="Page stats" stats={studio.pageStats || []} onChange={(stats) => updateStudioStats(side, "pageStats", stats)} />
+        <div className="admin-grid two">
+          <AdminText label="Portfolio title" value={studio.portfolioTitle} onChange={(value) => updateStudio(side, "portfolioTitle", value)} />
+          <AdminText label="Portfolio meta" value={studio.portfolioMeta} onChange={(value) => updateStudio(side, "portfolioMeta", value)} />
+          <AdminText label="Services meta" value={studio.servicesMeta} onChange={(value) => updateStudio(side, "servicesMeta", value)} />
+          <AdminText label="CTA button" value={studio.ctaButton} onChange={(value) => updateStudio(side, "ctaButton", value)} />
+          <AdminText label="CTA title prefix" value={studio.ctaTitlePre} onChange={(value) => updateStudio(side, "ctaTitlePre", value)} />
+          <AdminText label="CTA italic word" value={studio.ctaTitleEm} onChange={(value) => updateStudio(side, "ctaTitleEm", value)} />
+          <AdminText label="CTA second line" value={studio.ctaTitleSecond} onChange={(value) => updateStudio(side, "ctaTitleSecond", value)} />
+        </div>
+        <AdminText label="CTA text" value={studio.ctaText} textarea onChange={(value) => updateStudio(side, "ctaText", value)} />
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Services</h3>
+            <span>{services.length} service cards</span>
+          </div>
+          <button type="button" className="admin-secondary" onClick={() => addService(side)}>Add service</button>
+        </div>
+        <div className="admin-list">
+          {services.map((service, index) => (
+            <div className="admin-row-card service" key={`${service.num}-${service.title}-${index}`}>
+              <AdminText label="Number" value={service.num} onChange={(value) => updateService(side, index, "num", value)} />
+              <AdminText label="Title" value={service.title} onChange={(value) => updateService(side, index, "title", value)} />
+              <AdminText label="Description" value={service.desc} onChange={(value) => updateService(side, index, "desc", value)} />
+              <AdminNumber label="Icon index" value={service.icon ?? index} max={9} onChange={(value) => updateService(side, index, "icon", value)} />
+              <AdminRowActions index={index} length={services.length} onMove={(itemIndex, direction) => moveService(side, itemIndex, direction)} onRemove={(itemIndex) => removeService(side, itemIndex)} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Portfolio Work</h3>
+            <span>{works.length} case cards</span>
+          </div>
+          <button type="button" className="admin-secondary" onClick={() => addWork(side)}>Add work</button>
+        </div>
+        <div className="admin-list">
+          {works.map((work, index) => (
+            <div className="admin-row-card work" key={`${work.id}-${index}`}>
+              <AdminText label="Case ID" value={work.id} onChange={(value) => updateWork(side, index, "id", value)} />
+              <AdminText label="Title" value={work.title} onChange={(value) => updateWork(side, index, "title", value)} />
+              <AdminText label="Category" value={work.cat} onChange={(value) => updateWork(side, index, "cat", value)} />
+              <AdminText label="Year" value={work.year} onChange={(value) => updateWork(side, index, "year", value)} />
+              {side === "webdev" && (
+                <AdminText label="Stack" value={work.stack} onChange={(value) => updateWork(side, index, "stack", value)} />
+              )}
+              <AdminSelect label="Thumbnail" value={work.thumb} options={thumbOptions} onChange={(value) => updateWork(side, index, "thumb", value)} />
+              <AdminPaletteSelect label="Palette" value={work.pal ?? 0} side={side} onChange={(value) => updateWork(side, index, "pal", value)} />
+              <AdminNumber label="Grid span" value={work.span ?? 4} min={3} max={6} onChange={(value) => updateWork(side, index, "span", value)} />
+              <AdminText label="Thumb number" value={work.num} onChange={(value) => updateWork(side, index, "num", value)} />
+              <AdminImageUpload label="Thumbnail image (overrides generated thumb)" value={work.image || ""} onChange={(value) => updateWork(side, index, "image", value)} />
+              <AdminRowActions index={index} length={works.length} onMove={(itemIndex, direction) => moveWork(side, itemIndex, direction)} onRemove={(itemIndex) => removeWork(side, itemIndex)} />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AdminCasesEditor({ draft, updateCase, updateCaseResult, updateCaseInfo, addCase, removeCase }) {
+  const caseIds = Object.keys(draft.cases || {});
+  const [caseId, setCaseId] = React.useState(caseIds[0] || "");
+
+  React.useEffect(() => {
+    if (!caseId && caseIds.length) setCaseId(caseIds[0]);
+    if (caseId && !draft.cases?.[caseId]) setCaseId(caseIds[0] || "");
+  }, [caseId, caseIds.join("|"), draft.cases]);
+
+  const data = draft.cases?.[caseId];
+
+  if (!caseIds.length) {
+    return (
+      <section className="admin-section">
+        <div className="admin-empty">
+          <h3>Case Studies</h3>
+          <p>No case studies exist yet.</p>
+          <button type="button" className="admin-primary" onClick={() => setCaseId(addCase())}>Create first case</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="admin-stack">
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Case Studies</h3>
+            <span>Work card IDs open matching case IDs</span>
+          </div>
+          <div className="admin-heading-actions">
+            <button type="button" className="admin-secondary" onClick={() => setCaseId(addCase())}>Add case</button>
+            <button type="button" className="admin-danger" onClick={() => removeCase(caseId)}>Remove case</button>
+          </div>
+        </div>
+
+        <AdminSelect
+          label="Editing case"
+          value={caseId}
+          onChange={setCaseId}
+          options={caseIds.map((id) => ({ value: id, label: `${id} - ${draft.cases[id].title || "Untitled"}` }))}
+        />
+
+        <div className="admin-grid two">
+          <AdminText label="Title" value={data.title} onChange={(value) => updateCase(caseId, "title", value)} />
+          <AdminText label="Eyebrow" value={data.eyebrow} onChange={(value) => updateCase(caseId, "eyebrow", value)} />
+          <AdminSelect label="Side" value={data.side || "graphic"} options={[
+            { value: "graphic", label: "Graphic" },
+            { value: "webdev", label: "Web Dev" },
+          ]} onChange={(value) => updateCase(caseId, "side", value)} />
+          <AdminSelect label="Thumbnail" value={data.thumb || (data.side === "webdev" ? "WebApp" : "Brand")} options={ADMIN_THUMBS[data.side || "graphic"]} onChange={(value) => updateCase(caseId, "thumb", value)} />
+          <AdminPaletteSelect label="Palette" value={data.pal ?? 0} side={data.side || "graphic"} onChange={(value) => updateCase(caseId, "pal", value)} />
+          <AdminText label="Thumb number" value={data.num} onChange={(value) => updateCase(caseId, "num", value)} />
+        </div>
+
+        <AdminImageUpload label="Case hero image (overrides generated thumbnail)" value={data.image || ""} onChange={(value) => updateCase(caseId, "image", value)} />
+        <AdminText label="Challenge" value={data.challenge} textarea onChange={(value) => updateCase(caseId, "challenge", value)} />
+        <AdminText label="Pull quote" value={data.pull} textarea onChange={(value) => updateCase(caseId, "pull", value)} />
+        <AdminText label="Process" value={data.process} textarea onChange={(value) => updateCase(caseId, "process", value)} />
+        <AdminText label="Tools and stack" value={data.tools} textarea onChange={(value) => updateCase(caseId, "tools", value)} />
+      </section>
+
+      <section className="admin-section">
+        <AdminKeyValueEditor
+          title="Sidebar facts"
+          rows={data.side_info || []}
+          keyLabel="Fact"
+          valueLabel="Detail"
+          onChange={(rows) => updateCaseInfo(caseId, rows)}
+        />
+        <AdminResultEditor
+          results={data.results || []}
+          onChange={(results) => updateCaseResult(caseId, results)}
+        />
+      </section>
+    </div>
+  );
+}
+
+function AdminDataEditor({ draft, setDraft, save, reset, setStatus }) {
+  const exportJson = () => {
+    const blob = new Blob([JSON.stringify(draft, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "vox-portfolio-content.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setStatus("Exported content JSON.");
+  };
+
+  const copyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(draft, null, 2));
+      setStatus("Copied content JSON to clipboard.");
+    } catch (error) {
+      setStatus("Clipboard copy was blocked by the browser.", true);
+    }
+  };
+
+  const importJson = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        if (!parsed || typeof parsed !== "object") throw new Error("Expected an object.");
+        setDraft(adminNormalize(parsed));
+        setStatus("Imported JSON. Review it, then save changes.");
+      } catch (error) {
+        setStatus("The selected file is not valid portfolio JSON.", true);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
+
+  const updateStack = (stack) => {
+    setDraft((current) => {
+      const next = adminClone(current);
+      next.techStack = stack;
+      return next;
+    });
+  };
+
+  return (
+    <div className="admin-stack">
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Data Tools</h3>
+            <span>Move content between browsers, builds, or hosts</span>
+          </div>
+        </div>
+        <div className="admin-data-actions">
+          <button type="button" className="admin-secondary" onClick={exportJson}>Export JSON</button>
+          <button type="button" className="admin-secondary" onClick={copyJson}>Copy JSON</button>
+          <label className="admin-file">
+            Import JSON
+            <input type="file" accept="application/json" onChange={importJson} />
+          </label>
+          <button type="button" className="admin-primary" onClick={save}>Save now</button>
+          <button type="button" className="admin-danger" onClick={reset}>Reset defaults</button>
+        </div>
+        <p className="admin-note">
+          Static hosting cannot write content back to the server. Saved changes persist in this browser;
+          export JSON when you want to carry edits into another environment.
+        </p>
+      </section>
+
+      <section className="admin-section">
+        <AdminTechStackEditor stack={draft.techStack || []} onChange={updateStack} />
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Current JSON</h3>
+            <span>Read-only preview of the saved content shape</span>
+          </div>
+        </div>
+        <textarea className="admin-json" readOnly value={JSON.stringify(draft, null, 2)} />
+      </section>
+    </div>
+  );
+}
+
+function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
+  const config = window.PortfolioConfig || {};
+  const passcode = config.adminPasscode || window.PORTFOLIO_ADMIN_PASSCODE || "";
+  const sessionValue = passcode ? `pass:${adminHash(passcode)}` : "";
+  const [unlocked, setUnlocked] = React.useState(() => localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
+  const [password, setPassword] = React.useState("");
+  const [loginError, setLoginError] = React.useState("");
+  const [activeTab, setActiveTab] = React.useState(() => localStorage.getItem(ADMIN_TAB_KEY) || "site");
+  const [draft, setDraft] = React.useState(() => adminClone(content));
+  const [dirty, setDirty] = React.useState(false);
+  const [status, setStatusState] = React.useState("");
+  const [statusIsError, setStatusIsError] = React.useState(false);
+  const [lastSavedAt, setLastSavedAt] = React.useState(null);
+  const statusTimerRef = React.useRef(null);
+
+  const setStatus = (message, isError = false) => {
+    setStatusState(message);
+    setStatusIsError(isError);
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    if (message) {
+      statusTimerRef.current = setTimeout(() => setStatusState(""), 3500);
+    }
+  };
+
+  React.useEffect(() => {
+    if (!dirty) setDraft(adminClone(content));
+  }, [content, dirty]);
+
+  React.useEffect(() => {
+    localStorage.setItem(ADMIN_TAB_KEY, activeTab);
+  }, [activeTab]);
+
+  const mutate = (producer) => {
+    setDraft((current) => {
+      const next = adminClone(current);
+      producer(next);
+      return next;
+    });
+    setDirty(true);
+    setStatus("");
+  };
+
+  const updateSite = (key, value) => mutate((next) => { next.site[key] = value; });
+  const updateStudio = (side, key, value) => mutate((next) => { next.studios[side][key] = value; });
+  const updateStudioStats = (side, key, value) => mutate((next) => { next.studios[side][key] = value; });
+  const updateService = (side, index, key, value) => mutate((next) => { next.services[side][index][key] = value; });
+  const updateWork = (side, index, key, value) => mutate((next) => { next.works[side][index][key] = value; });
+  const updateCase = (caseId, key, value) => mutate((next) => { next.cases[caseId][key] = value; });
+  const updateCaseInfo = (caseId, rows) => mutate((next) => { next.cases[caseId].side_info = rows; });
+  const updateCaseResult = (caseId, results) => mutate((next) => { next.cases[caseId].results = results; });
+
+  const addService = (side) => mutate((next) => {
+    const count = next.services[side].length + 1;
+    next.services[side].push({ num: String(count).padStart(2, "0"), title: "New service", desc: "Short service description.", icon: Math.min(count - 1, 9) });
+  });
+  const removeService = (side, index) => mutate((next) => {
+    next.services[side] = next.services[side].filter((_, itemIndex) => itemIndex !== index);
+  });
+  const moveService = (side, index, direction) => mutate((next) => {
+    next.services[side] = moveArrayItem(next.services[side], index, direction);
+  });
+
+  const addWork = (side) => mutate((next) => {
+    const prefix = side === "graphic" ? "g" : "w";
+    const count = next.works[side].length + 1;
+    next.works[side].push({
+      id: `${prefix}${count}`,
+      title: "New Project",
+      cat: side === "graphic" ? "Brand Identity" : "Website",
+      year: String(new Date().getFullYear()),
+      stack: side === "webdev" ? "React - CSS - Node" : undefined,
+      thumb: side === "graphic" ? "Brand" : "WebApp",
+      pal: 0,
+      span: 4,
+    });
+  });
+  const removeWork = (side, index) => mutate((next) => {
+    next.works[side] = next.works[side].filter((_, itemIndex) => itemIndex !== index);
+  });
+  const moveWork = (side, index, direction) => mutate((next) => {
+    next.works[side] = moveArrayItem(next.works[side], index, direction);
+  });
+
+  const addCase = () => {
+    let index = Object.keys(draft.cases || {}).length + 1;
+    let createdId = "";
+    do {
+      createdId = `case-${index}`;
+      index += 1;
+    } while (draft.cases?.[createdId]);
+
+    mutate((next) => {
+      next.cases[createdId] = {
+        side: "graphic",
+        title: "New Case Study",
+        eyebrow: "Case - Project",
+        pal: 0,
+        thumb: "Brand",
+        side_info: [["Client", "Client name"], ["Year", String(new Date().getFullYear())], ["Role", "Designer"]],
+        challenge: "Describe the business problem.",
+        pull: "Add a short pull quote.",
+        process: "Describe the process.",
+        tools: "Tools, stack, and deliverables.",
+        results: [["0", "", "Result"]],
+      };
+    });
+    return createdId;
+  };
+
+  const removeCase = (caseId) => {
+    if (!window.confirm(`Remove ${caseId}? This only affects the saved draft.`)) return;
+    mutate((next) => {
+      delete next.cases[caseId];
+    });
+  };
+
+  const save = () => {
+    const normalized = adminNormalize(draft);
+    window.PortfolioContent.save(normalized);
+    onSave(adminClone(normalized));
+    setDraft(adminClone(normalized));
+    setDirty(false);
+    setLastSavedAt(new Date());
+    setStatus("Content saved in this browser.");
+  };
+
+  const reset = () => {
+    if (!window.confirm("Reset all portfolio content to the source defaults?")) return;
+    const fresh = window.PortfolioContent.reset();
+    setDraft(adminClone(fresh));
+    onSave(adminClone(fresh));
+    setDirty(false);
+    setStatus("Content reset to source defaults.");
+  };
+
+  const requestClose = () => {
+    if (dirty && !window.confirm("Close the admin panel with unsaved changes?")) return;
+    onClose();
+  };
+
+  React.useEffect(() => {
+    if (!open || !unlocked) return undefined;
+    const onKey = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        save();
+      }
+      if (event.key === "Escape") requestClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, unlocked, dirty, draft]);
+
+  const login = (event) => {
+    event.preventDefault();
+    if (!passcode) {
+      setLoginError("Admin passcode is not configured.");
+      return;
+    }
+    if (password === passcode) {
+      localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
+      setUnlocked(true);
+      setLoginError("");
+      setPassword("");
+      setStatus("Admin unlocked.");
+    } else {
+      setLoginError("Wrong passcode.");
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    setUnlocked(false);
+    setStatus("Admin locked.");
+  };
+
+  if (!open || !enabled) return null;
+
+  if (!unlocked) {
+    return (
+      <div className="admin-overlay">
+        <form className="admin-login" onSubmit={login}>
+          <button type="button" className="admin-close" onClick={requestClose}>Close</button>
+          <h2>Admin Panel</h2>
+          <p>Enter the site passcode to edit portfolio content.</p>
+          <AdminPasswordField label="Passcode" value={password} onChange={setPassword} />
+          {loginError && <div className="admin-error">{loginError}</div>}
+          <button className="admin-primary" type="submit">Unlock</button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-overlay">
+      <div className="admin-shell">
+        <aside className="admin-sidebar">
+          <div>
+            <div className="admin-kicker">Portfolio CMS</div>
+            <h2>
+              Admin Panel
+              {dirty && <span className="admin-dirty-dot" title="Unsaved changes"></span>}
+            </h2>
+          </div>
+          <nav className="admin-tabs">
+            {[
+              ["site",    "⊙", "Site"],
+              ["graphic", "◈", "Graphic"],
+              ["webdev",  "‹›", "Web Dev"],
+              ["cases",   "▤", "Cases"],
+              ["uploads", "⊞", "Uploads"],
+              ["data",    "≡", "Data"],
+            ].map(([key, icon, label]) => (
+              <button key={key} className={activeTab === key ? "active" : ""} onClick={() => setActiveTab(key)}>
+                <span className="admin-tab-icon">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div className="admin-sidebar-actions">
+            <button type="button" className="admin-secondary" onClick={logout}>Lock</button>
+            <button type="button" className="admin-secondary" onClick={requestClose}>Close</button>
+          </div>
+        </aside>
+
+        <main className="admin-main">
+          <div className="admin-toolbar">
+            <div>
+              <strong>{dirty ? "Unsaved changes" : "Content saved"}</strong>
+              <span>
+                {lastSavedAt
+                  ? `Last saved at ${lastSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                  : "Static edits stored in this browser."}
+              </span>
+            </div>
+            <div className="admin-toolbar-actions">
+              <button type="button" className="admin-secondary" onClick={() => {
+                setDraft(adminClone(content));
+                setDirty(false);
+                setStatus("Draft changes discarded.");
+              }}>Discard draft</button>
+              <button type="button" className="admin-primary" onClick={save}>Save changes</button>
+            </div>
+          </div>
+
+          {activeTab === "site" && (
+            <section className="admin-section">
+              <div className="admin-section-head">
+                <div>
+                  <h3>Site Settings</h3>
+                  <span>Brand, SEO, and contact</span>
+                </div>
+              </div>
+              <div className="admin-grid two">
+                <AdminText label="Brand name" value={draft.site.brandName} onChange={(value) => updateSite("brandName", value)} />
+                <AdminText label="Logo mark" value={draft.site.logoMark} onChange={(value) => updateSite("logoMark", value)} />
+                <AdminText label="Trademark text" value={draft.site.trademark} onChange={(value) => updateSite("trademark", value)} />
+                <AdminText label="Contact email" type="email" value={draft.site.contactEmail} onChange={(value) => updateSite("contactEmail", value)} />
+              </div>
+              <AdminText label="Meta title" value={draft.site.metaTitle} onChange={(value) => updateSite("metaTitle", value)} />
+              <AdminText label="Meta description" value={draft.site.metaDescription} textarea onChange={(value) => updateSite("metaDescription", value)} />
+              <div className="admin-subsection-head" style={{ marginTop: 22 }}>
+                <h4>Social links</h4>
+              </div>
+              <div className="admin-grid two">
+                <AdminText label="GitHub" value={draft.site.github} placeholder="https://github.com/…" onChange={(value) => updateSite("github", value)} />
+                <AdminText label="LinkedIn" value={draft.site.linkedin} placeholder="https://linkedin.com/in/…" onChange={(value) => updateSite("linkedin", value)} />
+                <AdminText label="Twitter / X" value={draft.site.twitter} placeholder="https://x.com/…" onChange={(value) => updateSite("twitter", value)} />
+                <AdminText label="Behance" value={draft.site.behance} placeholder="https://behance.net/…" onChange={(value) => updateSite("behance", value)} />
+              </div>
+            </section>
+          )}
+
+          {activeTab === "graphic" && (
+            <AdminStudioEditor
+              side="graphic"
+              draft={draft}
+              updateStudio={updateStudio}
+              updateStudioStats={updateStudioStats}
+              updateService={updateService}
+              addService={addService}
+              removeService={removeService}
+              moveService={moveService}
+              updateWork={updateWork}
+              addWork={addWork}
+              removeWork={removeWork}
+              moveWork={moveWork}
+            />
+          )}
+
+          {activeTab === "webdev" && (
+            <AdminStudioEditor
+              side="webdev"
+              draft={draft}
+              updateStudio={updateStudio}
+              updateStudioStats={updateStudioStats}
+              updateService={updateService}
+              addService={addService}
+              removeService={removeService}
+              moveService={moveService}
+              updateWork={updateWork}
+              addWork={addWork}
+              removeWork={removeWork}
+              moveWork={moveWork}
+            />
+          )}
+
+          {activeTab === "cases" && (
+            <AdminCasesEditor
+              draft={draft}
+              updateCase={updateCase}
+              updateCaseInfo={updateCaseInfo}
+              updateCaseResult={updateCaseResult}
+              addCase={addCase}
+              removeCase={removeCase}
+            />
+          )}
+
+          {activeTab === "uploads" && (
+            <AdminUploadsPage setStatus={setStatus} />
+          )}
+
+          {activeTab === "data" && (
+            <AdminDataEditor
+              draft={draft}
+              setDraft={(next) => {
+                setDraft(next);
+                setDirty(true);
+              }}
+              save={save}
+              reset={reset}
+              setStatus={setStatus}
+            />
+          )}
+        </main>
+      </div>
+      {status && (
+        <div className={"admin-toast" + (statusIsError ? " error" : "")}>
+          <span>{status}</span>
+          <button className="admin-toast-close" onClick={() => setStatusState("")}>×</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+window.PortfolioAdminPanel = AdminPanel;
