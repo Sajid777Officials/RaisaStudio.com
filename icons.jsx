@@ -80,7 +80,7 @@ window.PortfolioIcons = {
   ],
   webdev: [
     { Comp: IcoWeb, label: "Website Design" },
-    { Comp: IcoCode, label: "Web Development" },
+    { Comp: IcoCode, label: "Software Development" },
     { Comp: IcoLanding, label: "Landing Pages" },
     { Comp: IcoFolio, label: "Portfolio Sites" },
     { Comp: IcoBiz, label: "Business Websites" },

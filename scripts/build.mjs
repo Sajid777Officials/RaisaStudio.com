@@ -8,8 +8,8 @@ const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
 const assets = path.join(dist, "assets");
 
-const SITE_NAME = "VOX Studio";
-const SITE_TITLE = "VOX Studio - Graphic Design x Web Development";
+const SITE_NAME = "RAISA Studio";
+const SITE_TITLE = "RAISA Studio - Graphic Design x Software Development";
 const SITE_DESCRIPTION = "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.";
 const THEME_COLOR = "#0B1B3A";
 
@@ -43,6 +43,10 @@ const adminPasscode = String(process.env.PORTFOLIO_ADMIN_PASSCODE || "").trim();
 const adminEnabled = parseBoolean(process.env.PORTFOLIO_ENABLE_ADMIN, Boolean(adminPasscode));
 const tweaksEnabled = parseBoolean(process.env.PORTFOLIO_ENABLE_TWEAKS, false);
 const noIndex = parseBoolean(process.env.PORTFOLIO_NO_INDEX, false);
+// Supabase — supports both VITE_ prefix (Vite projects) and plain names
+const supabaseUrl = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+const supabaseAnonKey = String(process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "").trim();
+const supabaseEnabled = Boolean(supabaseUrl && supabaseAnonKey);
 
 if (adminEnabled && (!adminPasscode || adminPasscode === "change-me")) {
   throw new Error("Set PORTFOLIO_ADMIN_PASSCODE to a non-default value before building with admin enabled.");
@@ -57,6 +61,7 @@ const jsxFiles = [
   "webdev-page.jsx",
   "case-sheet.jsx",
   "content.jsx",
+  "supabase-client.jsx",
   "admin-panel.jsx",
   "app.jsx",
 ];
@@ -88,6 +93,8 @@ await writeFile(path.join(assets, "config.js"), `window.PortfolioConfig = ${toJs
   adminPasscode: adminEnabled ? adminPasscode : "",
   tweaksEnabled,
   siteUrl,
+  supabaseUrl,
+  supabaseAnonKey,
   buildTime: new Date().toISOString(),
 })};
 window.PORTFOLIO_ADMIN_PASSCODE = window.PortfolioConfig.adminPasscode;
@@ -129,6 +136,7 @@ ${robotsMeta}
 <script src="assets/config.js"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+${supabaseEnabled ? '<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>' : ""}
 <script src="assets/app.js"></script>
 </body>
 </html>
@@ -155,7 +163,7 @@ if (siteUrl) {
 
 await writeFile(path.join(dist, "site.webmanifest"), JSON.stringify({
   name: SITE_NAME,
-  short_name: "VOX",
+  short_name: "RAISA",
   start_url: ".",
   display: "standalone",
   background_color: "#FAF7F1",
@@ -177,12 +185,13 @@ await writeFile(path.join(dist, "favicon.svg"), `<svg xmlns="http://www.w3.org/2
 
 await writeFile(path.join(dist, "_redirects"), "/* /index.html 200\n", "utf8");
 
+const supabaseCspSuffix = supabaseEnabled ? " https://*.supabase.co" : "";
 await writeFile(path.join(dist, "_headers"), `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:${supabaseCspSuffix}; connect-src 'self'${supabaseCspSuffix}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
@@ -193,3 +202,4 @@ await writeFile(path.join(dist, "_headers"), `/*
 
 console.log(`Built ${path.relative(root, dist)} with ${jsxFiles.length} JSX files.`);
 console.log(`Admin panel: ${adminEnabled ? "enabled" : "disabled"}${siteUrl ? ` | URL: ${siteUrl}` : ""}`);
+console.log(`Supabase backend: ${supabaseEnabled ? `enabled (${supabaseUrl})` : "disabled (localStorage mode)"}`);

@@ -2,7 +2,7 @@
 const { ArrowRight, ArrowLeft, ArrowOut, Close, Lock } = window.PortfolioIcons;
 
 function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAdmin, site, expanded }) {
-  const brand = site?.brandName || "VOX Studio";
+  const brand = site?.brandName || "RAISA Studio";
   const mark = site?.logoMark || "V";
   const trademark = site?.trademark || "";
   return (
@@ -14,7 +14,7 @@ function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAdmin,
       <nav className="nav-links">
         <a onClick={onHome} className={!expanded ? "active" : ""}>Home</a>
         <a onClick={onGraphic} className={expanded === "graphic" ? "active" : ""}>Graphic Design</a>
-        <a onClick={onWebdev} className={expanded === "webdev" ? "active" : ""}>Web Dev</a>
+        <a onClick={onWebdev} className={expanded === "webdev" ? "active" : ""}>Software Dev</a>
         <a onClick={onContact}>Contact</a>
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

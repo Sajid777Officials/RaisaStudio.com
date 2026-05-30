@@ -1,4 +1,4 @@
-// Hero split: Graphic Design (left) / Web Development (right)
+// Hero split: Graphic Design (left) / Software Development (right)
 const { ArrowOut } = window.PortfolioIcons;
 
 const GRAPHIC_SERVICES = [
@@ -7,7 +7,7 @@ const GRAPHIC_SERVICES = [
 ];
 
 const WEBDEV_SERVICES = [
-  "Website Design", "Web Development", "Landing Pages", "Portfolio Sites", "Business Websites",
+  "Website Design", "Software Development", "Landing Pages", "Portfolio Sites", "Business Websites",
   "E-commerce", "App Development", "UI / UX", "Frontend", "Backend",
 ];
 
@@ -106,8 +106,8 @@ function Hero({ hovered, setHovered, expanded, onExpand, content }) {
               {webdev.heroEyebrow || "02 - Discipline B"}
             </div>
             <h1 className="panel-title">
-              <span className="stack">{webdev.heroTitleTop || "Web &"}</span>
-              <span className="stack"><em>{webdev.heroTitleEm || "development"}</em>{webdev.heroTitleSuffix || "."}</span>
+              <span className="stack">{webdev.heroTitleTop || "Software"}</span>
+              <span className="stack"><em>{webdev.heroTitleEm || "Development"}</em>{webdev.heroTitleSuffix || "."}</span>
             </h1>
             <p className="panel-sub">
               {webdev.heroSub || "Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last."}
@@ -120,7 +120,7 @@ function Hero({ hovered, setHovered, expanded, onExpand, content }) {
           </div>
           <div className="panel-foot">
             <button className="panel-cta" onClick={(e) => { e.stopPropagation(); onExpand("webdev"); }}>
-              {webdev.heroCta || "Enter Web Studio"}
+              {webdev.heroCta || "Enter Software Studio"}
               <span className="arrow"><ArrowOut size={20} sw={2} /></span>
             </button>
             <div className="panel-meta">

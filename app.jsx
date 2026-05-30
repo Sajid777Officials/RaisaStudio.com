@@ -2,9 +2,9 @@
 // Routes:
 //   #           → hero (split view)
 //   #graphic    → Graphic Design studio
-//   #webdev     → Web Development studio
+//   #webdev     → Software Development studio
 //   #graphic/g1 → Graphic studio + case study g1 open
-//   #webdev/w1  → Web Dev studio + case study w1 open
+//   #webdev/w1  → Software Dev studio + case study w1 open
 //   #admin      → Admin panel (password protected)
 
 const { useState, useEffect, useRef } = React;
@@ -57,6 +57,11 @@ function App() {
 
   const { view: expanded, caseId, admin: adminOpen } = route;
 
+  // Hydrate content from Supabase on mount; first render uses localStorage/defaults
+  useEffect(() => {
+    window.PortfolioContent.loadAsync().then(setContent).catch(() => {});
+  }, []);
+
   // Listen to popstate (browser back/forward + our go() calls)
   useEffect(() => {
     const sync = () => setRoute(parseHash());
@@ -104,9 +109,9 @@ function App() {
 
   // Update document title per route
   useEffect(() => {
-    const base = content.site?.metaTitle || "VOX Studio";
+    const base = content.site?.metaTitle || "RAISA Studio";
     const suffix = expanded === "graphic" ? " — Graphic Design"
-                 : expanded === "webdev"  ? " — Web Development"
+                 : expanded === "webdev"  ? " — Software Development"
                  : adminOpen              ? " — Admin"
                  : "";
     document.title = base + suffix;
@@ -128,7 +133,7 @@ function App() {
   };
   const contact       = () => {
     const email = content.site?.contactEmail || "hello@voxstudio.dev";
-    const sub   = encodeURIComponent(`Project inquiry — ${content.site?.brandName || "VOX Studio"}`);
+    const sub   = encodeURIComponent(`Project inquiry — ${content.site?.brandName || "RAISA Studio"}`);
     window.location.href = `mailto:${email}?subject=${sub}`;
   };
 
@@ -191,7 +196,7 @@ function App() {
               <TweakColor label="Graphic Design red" value={tweaks.red}
                 onChange={(v) => setTweak("red", v)}
                 options={["#E63946","#DC2626","#FF3B30","#C8102E"]} />
-              <TweakColor label="Web Dev navy" value={tweaks.navy}
+              <TweakColor label="Software Dev navy" value={tweaks.navy}
                 onChange={(v) => setTweak("navy", v)}
                 options={["#0B1B3A","#102A43","#050E22","#1E3A8A"]} />
               <TweakToggle label="Yellow accent" value={tweaks.showAccent}
@@ -220,7 +225,7 @@ function App() {
                 options={[
                   { value:"hero",    label:"Hero"    },
                   { value:"graphic", label:"Graphic" },
-                  { value:"webdev",  label:"Web Dev" },
+                  { value:"webdev",  label:"Software Dev" },
                 ]} />
             </TweakSection>
           </TweaksPanel>

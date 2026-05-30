@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VOX Studio — Brand Identity & Web Development</title>
-<meta name="description" content="VOX Studio crafts premium brand identities, print systems, and high-performance web products. Selected case studies in graphic design and web development." />
+<title>RAISA Studio — Brand Identity & Software Development</title>
+<meta name="description" content="RAISA Studio crafts premium brand identities, print systems, and high-performance web products. Selected case studies in graphic design and software development." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,12 +21,17 @@
 <script>
 window.PortfolioConfig = {
 
-  // ▼ SET YOUR ADMIN PASSWORD HERE ▼
+  // ▼ SET YOUR ADMIN PASSWORD HERE (used when Supabase auth is NOT configured) ▼
   adminPasscode: "OP0990OP",
   // ▲ SET YOUR ADMIN PASSWORD HERE ▲
 
   adminEnabled:  true,   // set false to hide admin entirely
   tweaksEnabled: true,   // set false to hide the tweaks panel
+
+  // ▼ SUPABASE — paste your project URL and anon key to enable backend persistence ▼
+  supabaseUrl:      "",  // e.g. "https://xxxx.supabase.co"
+  supabaseAnonKey:  "",  // e.g. "eyJhbGci..."
+  // ▲ Leave both empty to run in localStorage-only mode ▲
 };
 </script>
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -34,6 +39,7 @@ window.PortfolioConfig = {
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"    crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"    crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 <script type="text/babel" src="icons.jsx"></script>
@@ -43,6 +49,7 @@ window.PortfolioConfig = {
 <script type="text/babel" src="webdev-page.jsx"></script>
 <script type="text/babel" src="case-sheet.jsx"></script>
 <script type="text/babel" src="content.jsx"></script>
+<script type="text/babel" src="supabase-client.jsx"></script>
 <script type="text/babel" src="admin-panel.jsx"></script>
 <script type="text/babel" src="app.jsx"></script>
 </body>

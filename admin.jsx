@@ -1,4 +1,4 @@
-// VOX Studio — Admin Panel
+// RAISA Studio — Admin Panel
 const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ function WorkForm({ side, initial, onSave, onCancel, toast }) {
           <Ico n="back" s={13} /> Back
         </button>
         <h2 style={{ fontFamily:'var(--font-ui)', fontWeight:700, fontSize:17, letterSpacing:'-.02em' }}>
-          {initial ? 'Edit work' : `Add ${side === 'graphic' ? 'graphic' : 'web dev'} work`}
+          {initial ? 'Edit work' : `Add ${side === 'graphic' ? 'graphic' : 'software dev'} work`}
         </h2>
       </div>
 
@@ -432,7 +432,7 @@ function WorksPage({ side, toast }) {
   return (
     <div>
       <div className="sec-head">
-        <h2 className="sec-title">{side === 'graphic' ? 'Graphic Design' : 'Web Development'} works</h2>
+        <h2 className="sec-title">{side === 'graphic' ? 'Graphic Design' : 'Software Development'} works</h2>
         <div style={{ display:'flex', gap:8 }}>
           <button className="btn btn-ghost btn-sm" onClick={reset}>Reset defaults</button>
           <button className="btn btn-primary btn-sm" onClick={() => setEditing({})}>
@@ -597,7 +597,7 @@ function Dashboard({ setPage }) {
           <div className="dash-card-num red">{graphic.length}</div>
         </div>
         <div className="dash-card" style={{cursor:'pointer'}} onClick={() => setPage('webdev')}>
-          <div className="dash-card-label">Web dev works</div>
+          <div className="dash-card-label">Software dev works</div>
           <div className="dash-card-num amber">{webdev.length}</div>
         </div>
         <div className="dash-card" style={{cursor:'pointer'}} onClick={() => setPage('uploads')}>
@@ -626,7 +626,7 @@ function Dashboard({ setPage }) {
         <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
           {[
             { label:'Add a graphic design work', page:'graphic', icon:'grid' },
-            { label:'Add a web dev work',         page:'webdev',  icon:'code' },
+            { label:'Add a software dev work',     page:'webdev',  icon:'code' },
             { label:'Upload project images',      page:'uploads', icon:'upload' },
           ].map(item => (
             <button key={item.page} className="btn btn-ghost" style={{ justifyContent:'flex-start' }} onClick={() => setPage(item.page)}>
@@ -662,7 +662,7 @@ function Login({ onAuth }) {
         <div className="login-logo">
           <div className="mark">V</div>
           <div>
-            <span>VOX Studio</span>
+            <span>RAISA Studio</span>
             <small>Admin Panel</small>
           </div>
         </div>
@@ -693,11 +693,11 @@ function AdminApp() {
   const navItems = [
     { id:'dashboard', label:'Dashboard',      icon:'home' },
     { id:'graphic',   label:'Graphic Works',  icon:'grid',   count: db.get(KEYS.graphic, DEFAULT_GRAPHIC).length },
-    { id:'webdev',    label:'Web Dev Works',  icon:'code',   count: db.get(KEYS.webdev, DEFAULT_WEBDEV).length },
+    { id:'webdev',    label:'Software Dev Works',  icon:'code',   count: db.get(KEYS.webdev, DEFAULT_WEBDEV).length },
     { id:'uploads',   label:'Uploads',        icon:'upload', count: db.get(KEYS.uploads, []).length },
   ];
 
-  const pageTitles = { dashboard:'Dashboard', graphic:'Graphic Works', webdev:'Web Dev Works', uploads:'Uploads' };
+  const pageTitles = { dashboard:'Dashboard', graphic:'Graphic Works', webdev:'Software Dev Works', uploads:'Uploads' };
 
   const pageContent = () => {
     switch(page) {
@@ -715,7 +715,7 @@ function AdminApp() {
         <div className="sidebar-logo">
           <div className="mark">V</div>
           <div>
-            <div className="name">VOX Studio</div>
+            <div className="name">RAISA Studio</div>
             <div className="sub">Admin Panel</div>
           </div>
         </div>

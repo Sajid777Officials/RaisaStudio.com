@@ -33,6 +33,43 @@ function adminSaveUploads(uploads) {
   try { localStorage.setItem(ADMIN_UPLOADS_KEY, JSON.stringify(uploads)); } catch(e) {}
 }
 
+// ─── Supabase Storage upload helper ──────────────────────────────────────────
+async function adminUploadFileToStorage(file) {
+  const sb = window.PortfolioSupabase;
+  if (!sb) throw new Error("Supabase is not configured");
+
+  const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+  const storagePath = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const { data: storageData, error: uploadError } = await sb.storage
+    .from("portfolio-uploads")
+    .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  const { data: { publicUrl } } = sb.storage
+    .from("portfolio-uploads")
+    .getPublicUrl(storageData.path);
+
+  const { data: record, error: dbError } = await sb
+    .from("portfolio_uploads")
+    .insert({
+      name: file.name,
+      mime_type: file.type,
+      size: file.size,
+      public_url: publicUrl,
+      storage_path: storageData.path,
+    })
+    .select()
+    .single();
+
+  if (dbError) {
+    await sb.storage.from("portfolio-uploads").remove([storageData.path]).catch(() => {});
+    throw dbError;
+  }
+  return record;
+}
+
 // ─── AdminImageUpload control ─────────────────────────────────────────────────
 function AdminImageUpload({ label = "Thumbnail image", value, onChange }) {
   const [drag, setDrag] = React.useState(false);
@@ -42,14 +79,20 @@ function AdminImageUpload({ label = "Thumbnail image", value, onChange }) {
 
   const handle = async (file) => {
     if (!file || !file.type.startsWith("image/")) { alert("Please select an image file."); return; }
+    if (file.size > 3 * 1024 * 1024) { alert("File exceeds 3 MB"); return; }
     setLoading(true);
     try {
-      const data = await adminReadFile(file);
-      // Save to uploads library
-      const uploads = adminLoadUploads();
-      const entry = { id: "up_" + Date.now(), name: file.name, size: file.size, mimeType: file.type, data, uploadedAt: new Date().toISOString() };
-      adminSaveUploads([entry, ...uploads]);
-      onChange(data);
+      const sb = window.PortfolioSupabase;
+      if (sb) {
+        const record = await adminUploadFileToStorage(file);
+        onChange(record.public_url);
+      } else {
+        const data = await adminReadFile(file);
+        const uploads = adminLoadUploads();
+        const entry = { id: "up_" + Date.now(), name: file.name, size: file.size, mimeType: file.type, data, uploadedAt: new Date().toISOString() };
+        adminSaveUploads([entry, ...uploads]);
+        onChange(data);
+      }
     } catch(err) { alert(err.message); }
     finally { setLoading(false); }
   };
@@ -96,7 +139,23 @@ function AdminImageUpload({ label = "Thumbnail image", value, onChange }) {
 
 // ─── Library picker (inline) ──────────────────────────────────────────────────
 function AdminImagePicker({ current, onPick }) {
-  const uploads = adminLoadUploads();
+  const [uploads, setUploads] = React.useState(null);
+
+  React.useEffect(() => {
+    const sb = window.PortfolioSupabase;
+    if (sb) {
+      sb.from("portfolio_uploads")
+        .select("id, name, public_url")
+        .order("created_at", { ascending: false })
+        .then(({ data }) => setUploads(data || []));
+    } else {
+      setUploads(adminLoadUploads().map(u => ({ id: u.id, name: u.name, public_url: u.data })));
+    }
+  }, []);
+
+  if (!uploads) {
+    return <p style={{fontSize:11, color:"rgba(255,255,255,.4)", marginTop:8, fontFamily:"monospace"}}>Loading…</p>;
+  }
   if (!uploads.length) {
     return <p style={{fontSize:11, color:"rgba(255,255,255,.4)", marginTop:8, fontFamily:"monospace"}}>No uploads yet — upload an image above first.</p>;
   }
@@ -105,11 +164,11 @@ function AdminImagePicker({ current, onPick }) {
       {uploads.map((u) => (
         <button
           key={u.id} type="button"
-          className={"admin-pick-thumb" + (u.data === current ? " active" : "")}
-          onClick={() => onPick(u.data)}
+          className={"admin-pick-thumb" + (u.public_url === current ? " active" : "")}
+          onClick={() => onPick(u.public_url)}
           title={u.name}
         >
-          <img src={u.data} alt={u.name} />
+          <img src={u.public_url} alt={u.name} />
         </button>
       ))}
     </div>
@@ -118,31 +177,73 @@ function AdminImagePicker({ current, onPick }) {
 
 // ─── Uploads gallery page (full tab) ─────────────────────────────────────────
 function AdminUploadsPage({ setStatus }) {
-  const [uploads, setUploads] = React.useState(adminLoadUploads);
+  const [uploads, setUploads] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const [drag, setDrag] = React.useState(false);
+  const sb = window.PortfolioSupabase;
 
-  const refresh = (list) => { adminSaveUploads(list); setUploads(list); };
+  const fetchUploads = async () => {
+    setLoading(true);
+    try {
+      if (sb) {
+        const { data } = await sb
+          .from("portfolio_uploads")
+          .select("*")
+          .order("created_at", { ascending: false });
+        setUploads(data || []);
+      } else {
+        setUploads(adminLoadUploads().map(u => ({
+          id: u.id, name: u.name, size: u.size,
+          mime_type: u.mimeType, public_url: u.data,
+          created_at: u.uploadedAt, storage_path: null,
+        })));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => { fetchUploads(); }, []);
 
   const addFiles = async (files) => {
-    const results = [];
+    const added = [];
     for (const f of Array.from(files)) {
       if (!f.type.startsWith("image/")) { setStatus(`${f.name} is not an image`, true); continue; }
+      if (f.size > 3 * 1024 * 1024) { setStatus(`${f.name} exceeds 3 MB`, true); continue; }
       try {
-        const data = await adminReadFile(f);
-        results.push({ id: "up_" + Date.now() + Math.random().toString(36).slice(2), name: f.name, size: f.size, mimeType: f.type, data, uploadedAt: new Date().toISOString() });
+        if (sb) {
+          const record = await adminUploadFileToStorage(f);
+          added.push(record);
+        } else {
+          const data = await adminReadFile(f);
+          const entry = { id: "up_" + Date.now() + Math.random().toString(36).slice(2), name: f.name, size: f.size, mimeType: f.type, data, uploadedAt: new Date().toISOString() };
+          const existing = adminLoadUploads();
+          adminSaveUploads([entry, ...existing]);
+          added.push({ id: entry.id, name: entry.name, size: entry.size, mime_type: entry.mimeType, public_url: entry.data, created_at: entry.uploadedAt, storage_path: null });
+        }
       } catch(err) { setStatus(err.message, true); }
     }
-    if (results.length) {
-      refresh([...results, ...uploads]);
-      setStatus(`${results.length} file${results.length > 1 ? "s" : ""} uploaded.`);
+    if (added.length) {
+      setUploads(prev => [...added, ...prev]);
+      setStatus(`${added.length} file${added.length > 1 ? "s" : ""} uploaded.`);
     }
   };
 
-  const del = (id) => {
+  const del = async (u) => {
     if (!window.confirm("Delete this upload?")) return;
-    refresh(uploads.filter((u) => u.id !== id));
-    setStatus("Upload deleted.");
+    try {
+      if (sb) {
+        if (u.storage_path) await sb.storage.from("portfolio-uploads").remove([u.storage_path]);
+        await sb.from("portfolio_uploads").delete().eq("id", u.id);
+      } else {
+        adminSaveUploads(adminLoadUploads().filter(x => x.id !== u.id));
+      }
+      setUploads(prev => prev.filter(x => x.id !== u.id));
+      setStatus("Upload deleted.");
+    } catch(err) { setStatus("Delete failed: " + err.message, true); }
   };
+
+  const storageLabel = sb ? "Supabase Storage" : "browser storage";
 
   return (
     <div className="admin-stack">
@@ -150,7 +251,7 @@ function AdminUploadsPage({ setStatus }) {
         <div className="admin-section-head">
           <div>
             <h3>Uploads Library</h3>
-            <span>Images stored in browser storage · {uploads.length} file{uploads.length !== 1 ? "s" : ""}</span>
+            <span>Images in {storageLabel} · {loading ? "…" : `${uploads.length} file${uploads.length !== 1 ? "s" : ""}`}</span>
           </div>
         </div>
 
@@ -165,32 +266,36 @@ function AdminUploadsPage({ setStatus }) {
           <div className="admin-upload-hint">Drop images here or click to browse · PNG, JPG, WebP, SVG, GIF · Max 3 MB each · Multiple files OK</div>
         </div>
 
-        {uploads.length === 0 ? (
+        {loading ? (
+          <div className="admin-empty"><p>Loading uploads…</p></div>
+        ) : uploads.length === 0 ? (
           <div className="admin-empty"><p>No uploads yet. Drag images above to get started.</p></div>
         ) : (
           <div className="admin-uploads-grid">
             {uploads.map((u) => (
               <div key={u.id} className="admin-upload-card">
-                <img src={u.data} alt={u.name} className="admin-upload-img" />
+                <img src={u.public_url} alt={u.name} className="admin-upload-img" />
                 <div className="admin-upload-meta">
                   <div className="admin-upload-name" title={u.name}>{u.name}</div>
-                  <div className="admin-upload-size">{adminFormatBytes(u.size)} · {(u.mimeType || "").split("/")[1]?.toUpperCase()}</div>
-                  <div className="admin-upload-size">{new Date(u.uploadedAt).toLocaleDateString()}</div>
+                  <div className="admin-upload-size">{adminFormatBytes(u.size || 0)} · {(u.mime_type || "").split("/")[1]?.toUpperCase()}</div>
+                  <div className="admin-upload-size">{u.created_at ? new Date(u.created_at).toLocaleDateString() : ""}</div>
                 </div>
                 <div className="admin-upload-card-actions">
                   <button type="button" className="admin-mini-button" onClick={() => {
-                    navigator.clipboard.writeText(u.data)
-                      .then(() => setStatus("Image data URL copied."))
+                    navigator.clipboard.writeText(u.public_url)
+                      .then(() => setStatus("Image URL copied."))
                       .catch(() => setStatus("Copy failed.", true));
                   }}>Copy URL</button>
-                  <button type="button" className="admin-mini-button danger" onClick={() => del(u.id)}>Delete</button>
+                  <button type="button" className="admin-mini-button danger" onClick={() => del(u)}>Delete</button>
                 </div>
               </div>
             ))}
           </div>
         )}
         <p className="admin-note">
-          localStorage limit is ~5 MB. For many large images, host them externally and paste the URL into the image field instead.
+          {sb
+            ? "Images are stored in Supabase Storage and accessible via public URL from any device."
+            : "localStorage limit is ~5 MB. Connect Supabase for persistent, cross-device image hosting."}
         </p>
       </section>
     </div>
@@ -610,7 +715,7 @@ function AdminCasesEditor({ draft, updateCase, updateCaseResult, updateCaseInfo,
           <AdminText label="Eyebrow" value={data.eyebrow} onChange={(value) => updateCase(caseId, "eyebrow", value)} />
           <AdminSelect label="Side" value={data.side || "graphic"} options={[
             { value: "graphic", label: "Graphic" },
-            { value: "webdev", label: "Web Dev" },
+            { value: "webdev", label: "Software Dev" },
           ]} onChange={(value) => updateCase(caseId, "side", value)} />
           <AdminSelect label="Thumbnail" value={data.thumb || (data.side === "webdev" ? "WebApp" : "Brand")} options={ADMIN_THUMBS[data.side || "graphic"]} onChange={(value) => updateCase(caseId, "thumb", value)} />
           <AdminPaletteSelect label="Palette" value={data.pal ?? 0} side={data.side || "graphic"} onChange={(value) => updateCase(caseId, "pal", value)} />
@@ -708,8 +813,9 @@ function AdminDataEditor({ draft, setDraft, save, reset, setStatus }) {
           <button type="button" className="admin-danger" onClick={reset}>Reset defaults</button>
         </div>
         <p className="admin-note">
-          Static hosting cannot write content back to the server. Saved changes persist in this browser;
-          export JSON when you want to carry edits into another environment.
+          {window.PortfolioSupabase
+            ? "Changes are saved to Supabase and visible on every device. Export JSON as an offline backup."
+            : "Static hosting cannot write content back to the server. Saved changes persist in this browser; export JSON when you want to carry edits into another environment."}
         </p>
       </section>
 
@@ -734,12 +840,16 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const config = window.PortfolioConfig || {};
   const passcode = config.adminPasscode || window.PORTFOLIO_ADMIN_PASSCODE || "";
   const sessionValue = passcode ? `pass:${adminHash(passcode)}` : "";
-  const [unlocked, setUnlocked] = React.useState(() => localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
+  const [unlocked, setUnlocked] = React.useState(false);
+  const [authChecking, setAuthChecking] = React.useState(true);
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [loginLoading, setLoginLoading] = React.useState(false);
   const [loginError, setLoginError] = React.useState("");
   const [activeTab, setActiveTab] = React.useState(() => localStorage.getItem(ADMIN_TAB_KEY) || "site");
   const [draft, setDraft] = React.useState(() => adminClone(content));
   const [dirty, setDirty] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const [status, setStatusState] = React.useState("");
   const [statusIsError, setStatusIsError] = React.useState(false);
   const [lastSavedAt, setLastSavedAt] = React.useState(null);
@@ -757,6 +867,24 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   React.useEffect(() => {
     if (!dirty) setDraft(adminClone(content));
   }, [content, dirty]);
+
+  // Auth: check Supabase session or fall back to localStorage passcode session
+  React.useEffect(() => {
+    const sb = window.PortfolioSupabase;
+    if (sb) {
+      sb.auth.getSession().then(({ data: { session } }) => {
+        setUnlocked(!!session);
+        setAuthChecking(false);
+      });
+      const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
+        setUnlocked(!!session);
+      });
+      return () => subscription.unsubscribe();
+    } else {
+      setUnlocked(localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
+      setAuthChecking(false);
+    }
+  }, []);
 
   React.useEffect(() => {
     localStorage.setItem(ADMIN_TAB_KEY, activeTab);
@@ -846,23 +974,35 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
     });
   };
 
-  const save = () => {
-    const normalized = adminNormalize(draft);
-    window.PortfolioContent.save(normalized);
-    onSave(adminClone(normalized));
-    setDraft(adminClone(normalized));
-    setDirty(false);
-    setLastSavedAt(new Date());
-    setStatus("Content saved in this browser.");
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const normalized = adminNormalize(draft);
+      await window.PortfolioContent.save(normalized);
+      onSave(adminClone(normalized));
+      setDraft(adminClone(normalized));
+      setDirty(false);
+      setLastSavedAt(new Date());
+      setStatus(window.PortfolioSupabase ? "Saved to Supabase." : "Content saved in this browser.");
+    } catch (err) {
+      setStatus("Save failed — " + (err.message || "unknown error") + ". Draft kept.", true);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const reset = () => {
+  const reset = async () => {
     if (!window.confirm("Reset all portfolio content to the source defaults?")) return;
-    const fresh = window.PortfolioContent.reset();
-    setDraft(adminClone(fresh));
-    onSave(adminClone(fresh));
-    setDirty(false);
-    setStatus("Content reset to source defaults.");
+    try {
+      const fresh = await window.PortfolioContent.reset();
+      setDraft(adminClone(fresh));
+      onSave(adminClone(fresh));
+      setDirty(false);
+      setStatus("Content reset to source defaults.");
+    } catch (err) {
+      setStatus("Reset failed: " + (err.message || "unknown error"), true);
+    }
   };
 
   const requestClose = () => {
@@ -883,41 +1023,75 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, unlocked, dirty, draft]);
 
-  const login = (event) => {
+  const login = async (event) => {
     event.preventDefault();
-    if (!passcode) {
-      setLoginError("Admin passcode is not configured.");
-      return;
-    }
-    if (password === passcode) {
-      localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
-      setUnlocked(true);
+    const sb = window.PortfolioSupabase;
+    if (sb) {
+      setLoginLoading(true);
       setLoginError("");
-      setPassword("");
-      setStatus("Admin unlocked.");
+      try {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        // onAuthStateChange listener will set unlocked = true
+      } catch (err) {
+        setLoginError(err.message || "Login failed.");
+      } finally {
+        setLoginLoading(false);
+      }
     } else {
-      setLoginError("Wrong passcode.");
+      if (!passcode) { setLoginError("Admin passcode is not configured."); return; }
+      if (password === passcode) {
+        localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
+        setUnlocked(true);
+        setLoginError("");
+        setPassword("");
+      } else {
+        setLoginError("Wrong passcode.");
+      }
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem(ADMIN_SESSION_KEY);
-    setUnlocked(false);
+  const logout = async () => {
+    const sb = window.PortfolioSupabase;
+    if (sb) {
+      await sb.auth.signOut().catch(() => {});
+      // onAuthStateChange listener will set unlocked = false
+    } else {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      setUnlocked(false);
+    }
     setStatus("Admin locked.");
   };
 
   if (!open || !enabled) return null;
 
+  if (authChecking) {
+    return (
+      <div className="admin-overlay">
+        <div className="admin-login">
+          <button type="button" className="admin-close" onClick={requestClose}>Close</button>
+          <p style={{color:"rgba(255,255,255,.45)", fontFamily:"monospace", fontSize:13, textAlign:"center", marginTop:16}}>Checking session…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!unlocked) {
+    const useSupabase = !!window.PortfolioSupabase;
     return (
       <div className="admin-overlay">
         <form className="admin-login" onSubmit={login}>
           <button type="button" className="admin-close" onClick={requestClose}>Close</button>
           <h2>Admin Panel</h2>
-          <p>Enter the site passcode to edit portfolio content.</p>
-          <AdminPasswordField label="Passcode" value={password} onChange={setPassword} />
+          <p>{useSupabase ? "Sign in with your Supabase admin account." : "Enter the site passcode to edit portfolio content."}</p>
+          {useSupabase && (
+            <AdminText label="Email" type="email" value={email} onChange={setEmail} placeholder="admin@example.com" />
+          )}
+          <AdminPasswordField label={useSupabase ? "Password" : "Passcode"} value={password} onChange={setPassword} />
           {loginError && <div className="admin-error">{loginError}</div>}
-          <button className="admin-primary" type="submit">Unlock</button>
+          <button className="admin-primary" type="submit" disabled={loginLoading}>
+            {loginLoading ? "Signing in…" : "Unlock"}
+          </button>
         </form>
       </div>
     );
@@ -938,7 +1112,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
             {[
               ["site",    "⊙", "Site"],
               ["graphic", "◈", "Graphic"],
-              ["webdev",  "‹›", "Web Dev"],
+              ["webdev",  "‹›", "Software Dev"],
               ["cases",   "▤", "Cases"],
               ["uploads", "⊞", "Uploads"],
               ["data",    "≡", "Data"],
@@ -958,20 +1132,24 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
         <main className="admin-main">
           <div className="admin-toolbar">
             <div>
-              <strong>{dirty ? "Unsaved changes" : "Content saved"}</strong>
+              <strong>{saving ? "Saving…" : dirty ? "Unsaved changes" : "Content saved"}</strong>
               <span>
                 {lastSavedAt
                   ? `Last saved at ${lastSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                  : "Static edits stored in this browser."}
+                  : window.PortfolioSupabase
+                    ? "Changes are saved to Supabase."
+                    : "Static edits stored in this browser."}
               </span>
             </div>
             <div className="admin-toolbar-actions">
-              <button type="button" className="admin-secondary" onClick={() => {
+              <button type="button" className="admin-secondary" disabled={saving} onClick={() => {
                 setDraft(adminClone(content));
                 setDirty(false);
                 setStatus("Draft changes discarded.");
               }}>Discard draft</button>
-              <button type="button" className="admin-primary" onClick={save}>Save changes</button>
+              <button type="button" className="admin-primary" onClick={save} disabled={saving}>
+                {saving ? "Saving…" : "Save changes"}
+              </button>
             </div>
           </div>
 

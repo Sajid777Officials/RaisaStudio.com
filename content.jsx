@@ -1,13 +1,15 @@
 // Editable content and persistence for the portfolio.
+// Saves to Supabase when configured (window.PortfolioSupabase), falls back to localStorage.
 const PORTFOLIO_STORAGE_KEY = "vox-portfolio-content-v1";
+const PORTFOLIO_CONTENT_ROW_ID = 1;
 
 const PORTFOLIO_DEFAULT_CONTENT = {
   site: {
-    brandName: "VOX Studio",
+    brandName: "RAISA Studio",
     logoMark: "V",
     trademark: "TM",
     contactEmail: "hello@voxstudio.dev",
-    metaTitle: "VOX Studio - Graphic Design x Web Development",
+    metaTitle: "RAISA Studio - Graphic Design x Software Development",
     metaDescription: "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
   },
   studios: {
@@ -44,16 +46,16 @@ const PORTFOLIO_DEFAULT_CONTENT = {
     },
     webdev: {
       heroEyebrow: "02 - Discipline B",
-      heroTitleTop: "Web &",
-      heroTitleEm: "development",
+      heroTitleTop: "Software",
+      heroTitleEm: "Development",
       heroTitleSuffix: ".",
       heroSub: "Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.",
-      heroCta: "Enter Web Studio",
+      heroCta: "Enter Software Studio",
       heroStats: [
         { value: "84", suffix: "+", label: "Sites launched" },
         { value: "99", suffix: "%", label: "Lighthouse avg." },
       ],
-      pageEyebrow: "Studio B - Web Development",
+      pageEyebrow: "Studio B - Software Development",
       pageTitlePre: "Sites that ",
       pageTitleEm: "load",
       pageTitlePost: "",
@@ -89,7 +91,7 @@ const PORTFOLIO_DEFAULT_CONTENT = {
     ],
     webdev: [
       { num: "01", title: "Website Design", desc: "Marketing sites engineered for clarity and conversion.", icon: 0 },
-      { num: "02", title: "Web Development", desc: "Production builds with HTML, CSS and modern JS.", icon: 1 },
+      { num: "02", title: "Software Development", desc: "Production builds with HTML, CSS and modern JS.", icon: 1 },
       { num: "03", title: "Landing Pages", desc: "One-screen pitches optimized for paid traffic.", icon: 2 },
       { num: "04", title: "Portfolio Sites", desc: "Quiet, fast portfolios that put work first.", icon: 3 },
       { num: "05", title: "Business Websites", desc: "Multi-page sites with CMS and lead capture.", icon: 4 },
@@ -118,7 +120,8 @@ const PORTFOLIO_DEFAULT_CONTENT = {
       { id: "w6", title: "Ledger.io", cat: "SaaS Dashboard", year: "2024", stack: "React - Tailwind", thumb: "Dashboard", pal: 5, span: 4 },
     ],
   },
-  techStack: ["React", "Next.js", "TypeScript", "Tailwind", "Node.js", "PHP", "MySQL", "Postgres", "WordPress", "Shopify", "Figma", "Vercel"],
+  // WordPress removed; Kotlin, Flutter, MongoDB, Express.js added
+  techStack: ["React", "Next.js", "TypeScript", "Tailwind", "Node.js", "PHP", "MySQL", "Postgres", "MongoDB", "Express.js", "Kotlin", "Flutter", "Shopify", "Figma", "Vercel"],
   cases: window.PortfolioCaseData || {},
 };
 
@@ -144,6 +147,7 @@ function mergeContent(defaultValue, savedValue) {
   return savedValue == null ? defaultValue : savedValue;
 }
 
+// Synchronous load — returns localStorage content or defaults. Used for first render.
 function loadPortfolioContent() {
   try {
     const raw = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
@@ -155,14 +159,61 @@ function loadPortfolioContent() {
   }
 }
 
-function savePortfolioContent(content) {
-  localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(content));
+// Async load — fetches from Supabase, caches in localStorage, falls back to localStorage.
+async function loadPortfolioContentAsync() {
+  const sb = window.PortfolioSupabase;
+  if (!sb) return loadPortfolioContent();
+
+  try {
+    const { data, error } = await sb
+      .from("portfolio_content")
+      .select("content_json")
+      .eq("id", PORTFOLIO_CONTENT_ROW_ID)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data || !data.content_json) return loadPortfolioContent();
+
+    const merged = mergeContent(PORTFOLIO_DEFAULT_CONTENT, data.content_json);
+    try { localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(merged)); } catch (_) {}
+    return merged;
+  } catch (err) {
+    console.warn("[RAISA] Supabase load failed, using localStorage fallback.", err);
+    return loadPortfolioContent();
+  }
+}
+
+// Async save — writes to Supabase (primary) and localStorage (cache/fallback).
+// Throws if Supabase is configured but the save fails, so the admin can see the error.
+async function savePortfolioContent(content) {
+  try { localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(content)); } catch (_) {}
+
+  const sb = window.PortfolioSupabase;
+  if (sb) {
+    const { error } = await sb
+      .from("portfolio_content")
+      .upsert(
+        { id: PORTFOLIO_CONTENT_ROW_ID, content_json: content, updated_at: new Date().toISOString() },
+        { onConflict: "id" }
+      );
+    if (error) throw error;
+  }
+
   window.dispatchEvent(new CustomEvent("portfolio-content-saved", { detail: content }));
 }
 
-function resetPortfolioContent() {
-  localStorage.removeItem(PORTFOLIO_STORAGE_KEY);
+// Async reset — deletes from Supabase and localStorage, returns fresh defaults.
+async function resetPortfolioContent() {
   const fresh = cloneContent(PORTFOLIO_DEFAULT_CONTENT);
+  try { localStorage.removeItem(PORTFOLIO_STORAGE_KEY); } catch (_) {}
+
+  const sb = window.PortfolioSupabase;
+  if (sb) {
+    try {
+      await sb.from("portfolio_content").delete().eq("id", PORTFOLIO_CONTENT_ROW_ID);
+    } catch (_) {}
+  }
+
   window.dispatchEvent(new CustomEvent("portfolio-content-saved", { detail: fresh }));
   return fresh;
 }
@@ -178,6 +229,7 @@ window.PortfolioContent = {
   merge: mergeContent,
   normalize: normalizePortfolioContent,
   load: loadPortfolioContent,
+  loadAsync: loadPortfolioContentAsync,
   save: savePortfolioContent,
   reset: resetPortfolioContent,
 };

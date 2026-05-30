@@ -1,4 +1,4 @@
-// Web Development expanded page
+// Software Development expanded page
 const { ArrowRight: WdArrowRight, ArrowOut: WdArrowOut, ArrowLeft: WdArrowLeft, webdev: WD_ICONS } = window.PortfolioIcons;
 const { thumbs: WdThumbs, WEBDEV_PALETTES: WD_PAL } = window.PortfolioShared;
 
@@ -32,12 +32,12 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
       <div className="page-scroll">
         <div className="page-topbar">
           <button className="back-btn" onClick={onBack}><WdArrowLeft size={18} sw={2} />Back to hero</button>
-          <div className="crumb">Index / Studio B - Web Development</div>
+          <div className="crumb">Index / Studio B - Software Development</div>
         </div>
 
         <div className="page-hero">
           <div>
-            <div className="page-eyebrow"><span className="dot"></span>{studio.pageEyebrow || "Studio B - Web Development"}</div>
+            <div className="page-eyebrow"><span className="dot"></span>{studio.pageEyebrow || "Studio B - Software Development"}</div>
             <h1 className="page-title">
               {studio.pageTitlePre || "Sites that "}<em>{studio.pageTitleEm || "load"}</em>{studio.pageTitlePost || ""}<br/>
               {studio.pageTitleSecond || "and sites that sell."}
