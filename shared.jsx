@@ -24,11 +24,6 @@ function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAdmin,
             Admin
           </button>
         )}
-        <button className="nav-cta" onClick={onContact}>
-          <span className="dot"></span>
-          Start a project
-          <ArrowRight size={16} sw={2} />
-        </button>
       </div>
     </div>
   );

@@ -6,9 +6,37 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
   const studio = content?.studios?.graphic || {};
   const services = content?.services?.graphic || [];
   const works = content?.works?.graphic || [];
+  const pageRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const page = pageRef.current;
+    if (!page || !visible) return;
+
+    const els = Array.from(page.querySelectorAll(
+      ".service-card, .work-card, .page-stats > div, .page-lede, .section-head, .cta-foot"
+    ));
+
+    els.forEach((el, i) => {
+      el.style.opacity   = "0";
+      el.style.transform = "translateY(22px)";
+      el.style.transition = `opacity 0.52s ease ${(i % 6) * 0.07}s, transform 0.52s ease ${(i % 6) * 0.07}s`;
+    });
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity   = "1";
+          entry.target.style.transform = "translateY(0)";
+        }
+      });
+    }, { threshold: 0.12 });
+
+    els.forEach(el => obs.observe(el));
+    return () => { obs.disconnect(); els.forEach(el => { el.style.opacity = "0"; el.style.transform = "translateY(22px)"; }); };
+  }, [visible]);
 
   return (
-    <div className={"page page-graphic" + (visible ? " visible" : "")}>
+    <div ref={pageRef} className={"page page-graphic" + (visible ? " visible" : "")}>
       <div className="page-scroll">
         <div className="page-topbar">
           <button className="back-btn" onClick={onBack}><GdArrowLeft size={18} sw={2} />Back to hero</button>
@@ -65,19 +93,48 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
 
         <div className="portfolio-section">
           <div className="section-head">
-            <h2>{studio.portfolioTitle || "Selected work"}</h2>
+            <div>
+              {works.length > 0 && <div className="portfolio-count">{works.length} {works.length === 1 ? "project" : "projects"}</div>}
+              <h2>{studio.portfolioTitle || "Selected work"}</h2>
+            </div>
             <div className="section-meta" style={{ opacity: 0.55 }}>{studio.portfolioMeta || "Click for case"}</div>
           </div>
           <div className="portfolio-grid">
             {works.map((work) => {
               const Thumb = GdThumbs[work.thumb] || GdThumbs.Brand;
+              const tilt = (e) => {
+                const card = e.currentTarget;
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transition = "transform 0.08s linear";
+                card.style.transform = `perspective(800px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale3d(1.02,1.02,1.02)`;
+              };
+              const untilt = (e) => {
+                const c = e.currentTarget;
+                c.style.transition = "transform 0.4s cubic-bezier(0.2,0.8,0.2,1)";
+                c.style.transform = "";
+              };
               return (
-                <div key={work.id} className="work-card" style={{ gridColumn: `span ${work.span || 4}` }} onClick={() => onOpenCase({ ...work, side: "graphic" })}>
+                <div key={work.id}
+                     className={"work-card span-" + (work.span || 4)}
+                     style={{ gridColumn: `span ${work.span || 4}` }}
+                     onClick={() => onOpenCase({ ...work, side: "graphic" })}
+                     onMouseMove={tilt}
+                     onMouseLeave={untilt}>
                   <div className="work-thumb">
-                    {work.image
-                      ? <img src={work.image} alt={work.title} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
-                      : <Thumb palette={GD_PAL[work.pal] || GD_PAL[0]} title={work.title} num={work.num || "01"} />
-                    }
+                    <div className="work-thumb-inner">
+                      {work.image
+                        ? <img src={work.image} alt={work.title} />
+                        : <Thumb palette={GD_PAL[work.pal] || GD_PAL[0]} title={work.title} num={work.num || "01"} />
+                      }
+                    </div>
+                    {work.cat && <span className="work-badge">{work.cat}</span>}
+                    <div className="work-overlay">
+                      <div className="work-ov-cat">{work.cat}</div>
+                      <div className="work-ov-title">{work.title}</div>
+                      <div className="work-ov-cta">View case &thinsp;<GdArrowOut size={12} sw={2} /></div>
+                    </div>
                   </div>
                   <div className="work-meta">
                     <div>

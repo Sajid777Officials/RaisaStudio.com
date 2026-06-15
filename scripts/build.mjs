@@ -1,7 +1,7 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { transform } from "esbuild";
+import { transform, build as esbuildBundle } from "esbuild";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -56,6 +56,7 @@ const jsxFiles = [
   "tweaks-panel.jsx",
   "icons.jsx",
   "shared.jsx",
+  "cursor.jsx",
   "hero.jsx",
   "graphic-page.jsx",
   "webdev-page.jsx",
@@ -87,6 +88,39 @@ for (const file of jsxFiles) {
 }
 
 await writeFile(path.join(assets, "app.js"), bundle, "utf8");
+
+// Bundle framer-motion with React globals mapped to window.React / window.ReactDOM
+const reactGlobalsPlugin = {
+  name: "react-globals",
+  setup(build) {
+    const shims = new Map([
+      ["react",             "module.exports = window.React;"],
+      ["react-dom",         "module.exports = window.ReactDOM;"],
+      ["react/jsx-runtime", "module.exports = { createElement: window.React.createElement, Fragment: window.React.Fragment, jsx: window.React.createElement, jsxs: window.React.createElement };"],
+      ["react-dom/client",  "module.exports = window.ReactDOM;"],
+    ]);
+    build.onResolve({ filter: /^react/ }, (args) => {
+      if (shims.has(args.path)) return { path: args.path, namespace: "react-shim" };
+    });
+    build.onLoad({ filter: /.*/, namespace: "react-shim" }, (args) => ({
+      contents: shims.get(args.path) || "module.exports = {};",
+      loader: "js",
+    }));
+  },
+};
+
+await esbuildBundle({
+  entryPoints: [path.join(root, "framer-motion-entry.js")],
+  bundle: true,
+  outfile: path.join(assets, "framer-motion.js"),
+  format: "iife",
+  globalName: "FramerMotion",
+  platform: "browser",
+  define: { "process.env.NODE_ENV": '"production"' },
+  minify: true,
+  plugins: [reactGlobalsPlugin],
+  logLevel: "silent",
+});
 
 await writeFile(path.join(assets, "config.js"), `window.PortfolioConfig = ${toJs({
   adminEnabled,
@@ -137,6 +171,9 @@ ${robotsMeta}
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 ${supabaseEnabled ? '<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>' : ""}
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.160.1/build/three.min.js" crossorigin="anonymous"></script>
+<script src="assets/framer-motion.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>
@@ -191,7 +228,7 @@ await writeFile(path.join(dist, "_headers"), `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:${supabaseCspSuffix}; connect-src 'self'${supabaseCspSuffix}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:${supabaseCspSuffix}; connect-src 'self' https://api.github.com${supabaseCspSuffix}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

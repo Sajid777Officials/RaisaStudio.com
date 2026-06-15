@@ -1,4 +1,53 @@
 // Main App — hash-based router
+
+// ── Loading screen (first visit per session) ──────────────────────────────────
+function LoadingScreen({ onDone }) {
+  const overlayRef = useRef(null);
+  const logoRef    = useRef(null);
+
+  useEffect(() => {
+    const gsap = window.gsap;
+    if (!gsap) { onDone(); return; }
+
+    gsap.timeline()
+      .from(logoRef.current,    { scale: 0.82, opacity: 0, duration: 0.75, ease: "expo.out" })
+      .to(overlayRef.current, { yPercent: -100, duration: 0.88, ease: "expo.inOut", delay: 0.38 })
+      .call(onDone);
+  }, []);
+
+  return (
+    <div ref={overlayRef} className="loading-screen">
+      <div ref={logoRef} className="loading-logo">
+        <div className="loading-mark">V</div>
+        <div className="loading-brand">RAISA</div>
+      </div>
+    </div>
+  );
+}
+
+// ── PageSlide wraps a studio page with a Framer Motion enter/exit transition.
+// Falls back to a plain div when framer-motion is not loaded.
+function PageSlide({ show, enterX, children }) {
+  const FM = window.FramerMotion;
+  if (!FM) {
+    return (
+      <div style={{ position: "absolute", inset: 0, pointerEvents: show ? "auto" : "none" }}>
+        {children}
+      </div>
+    );
+  }
+  const { motion } = FM;
+  return (
+    <motion.div
+      initial={false}
+      animate={{ opacity: show ? 1 : 0, x: show ? 0 : enterX }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+      style={{ position: "absolute", inset: 0, pointerEvents: show ? "auto" : "none" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 // Routes:
 //   #           → hero (split view)
 //   #graphic    → Graphic Design studio
@@ -51,6 +100,9 @@ function App() {
   const [hovered, setHovered] = useState(null);
   const [content, setContent] = useState(() => window.PortfolioContent.load());
   const [tweaks, setTweak]  = useTweaks(TWEAK_DEFAULTS);
+  const [ready, setReady]   = useState(() => Boolean(sessionStorage.getItem("p-ready")));
+
+  const Cursor = window.PortfolioCursor;
 
   const adminEnabled  = CFG.adminEnabled  !== false;
   const tweaksEnabled = CFG.tweaksEnabled !== false;
@@ -140,8 +192,12 @@ function App() {
   const onSplit = !expanded;
   const onDark  = expanded === "webdev";
 
+  const handleReady = () => { sessionStorage.setItem("p-ready", "1"); setReady(true); };
+
   return (
     <div className="app-shell">
+      {!ready && <LoadingScreen onDone={handleReady} />}
+      {Cursor && <Cursor />}
       <div className="stage-wrap">
         <div
           className="stage"
@@ -167,21 +223,25 @@ function App() {
             onExpand={(v) => v === "graphic" ? goGraphic() : goWebdev()}
           />
 
-          <GraphicPage
-            content={content}
-            visible={expanded === "graphic"}
-            onBack={goHome}
-            onOpenCase={openCase}
-            onContact={contact}
-          />
+          <PageSlide show={expanded === "graphic"} enterX={-28}>
+            <GraphicPage
+              content={content}
+              visible={expanded === "graphic"}
+              onBack={goHome}
+              onOpenCase={openCase}
+              onContact={contact}
+            />
+          </PageSlide>
 
-          <WebDevPage
-            content={content}
-            visible={expanded === "webdev"}
-            onBack={goHome}
-            onOpenCase={openCase}
-            onContact={contact}
-          />
+          <PageSlide show={expanded === "webdev"} enterX={28}>
+            <WebDevPage
+              content={content}
+              visible={expanded === "webdev"}
+              onBack={goHome}
+              onOpenCase={openCase}
+              onContact={contact}
+            />
+          </PageSlide>
 
           <CaseSheet
             content={content}

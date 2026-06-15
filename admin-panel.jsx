@@ -652,7 +652,12 @@ function AdminStudioEditor({
               )}
               <AdminSelect label="Thumbnail" value={work.thumb} options={thumbOptions} onChange={(value) => updateWork(side, index, "thumb", value)} />
               <AdminPaletteSelect label="Palette" value={work.pal ?? 0} side={side} onChange={(value) => updateWork(side, index, "pal", value)} />
-              <AdminNumber label="Grid span" value={work.span ?? 4} min={3} max={6} onChange={(value) => updateWork(side, index, "span", value)} />
+              <AdminSelect label="Card size / aspect ratio" value={String(work.span ?? 4)} options={[
+                { value: "4",  label: "4-col — portrait (3:4)" },
+                { value: "6",  label: "6-col — landscape (4:3)" },
+                { value: "8",  label: "8-col — wide (16:9)" },
+                { value: "12", label: "12-col — full-width (21:9)" },
+              ]} onChange={(value) => updateWork(side, index, "span", Number(value))} />
               <AdminText label="Thumb number" value={work.num} onChange={(value) => updateWork(side, index, "num", value)} />
               <AdminImageUpload label="Thumbnail image (overrides generated thumb)" value={work.image || ""} onChange={(value) => updateWork(side, index, "image", value)} />
               <AdminRowActions index={index} length={works.length} onMove={(itemIndex, direction) => moveWork(side, itemIndex, direction)} onRemove={(itemIndex) => removeWork(side, itemIndex)} />
