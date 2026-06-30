@@ -245,6 +245,7 @@ function App() {
 
           <CaseSheet
             content={content}
+            activeSide={expanded}
             caseId={caseId}
             onClose={closeCase}
           />

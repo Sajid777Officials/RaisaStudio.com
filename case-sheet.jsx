@@ -180,9 +180,56 @@ const CASE_DATA = {
   },
 };
 
-function CaseSheet({ caseId, onClose, content }) {
+function findCaseWork(caseId, content, preferredSide, caseSide) {
+  const sides = [preferredSide, caseSide, "graphic", "webdev"].filter(Boolean);
+  const seen = new Set();
+  for (const side of sides) {
+    if (seen.has(side)) continue;
+    seen.add(side);
+    const work = content?.works?.[side]?.find((item) => item.id === caseId);
+    if (work) return { ...work, side };
+  }
+  return null;
+}
+
+function buildCaseFromWork(work) {
+  if (!work) return null;
+  return {
+    side: work.side || "graphic",
+    title: work.title || "Untitled Project",
+    eyebrow: `Case - ${work.cat || "Project"}`,
+    thumb: work.thumb,
+    pal: work.pal ?? 0,
+    num: work.num,
+    image: work.image,
+    side_info: [
+      ["Year", work.year || ""],
+      [work.side === "webdev" ? "Stack" : "Discipline", work.stack || work.cat || ""],
+    ].filter((row) => row[1]),
+    challenge: "",
+    pull: "",
+    process: "",
+    tools: work.stack || "",
+    results: [],
+  };
+}
+
+function mergeCaseWithWork(baseData, linkedWork) {
+  if (!baseData || !linkedWork) return baseData;
+  return {
+    ...baseData,
+    image: baseData.image || linkedWork.image,
+    thumb: baseData.thumb || linkedWork.thumb,
+    pal: baseData.pal ?? linkedWork.pal,
+    num: baseData.num || linkedWork.num,
+  };
+}
+
+function CaseSheet({ caseId, onClose, content, activeSide }) {
   if (!caseId) return null;
-  const data = content?.cases?.[caseId] || CASE_DATA[caseId];
+  const baseData = content?.cases?.[caseId] || CASE_DATA[caseId];
+  const linkedWork = findCaseWork(caseId, content, activeSide, baseData?.side);
+  const data = mergeCaseWithWork(baseData || buildCaseFromWork(linkedWork), linkedWork);
   if (!data) return null;
   const pal = data.side === "graphic" ? CS_GD_PAL[data.pal] : CS_WD_PAL[data.pal];
   const Thumb = data.side === "graphic"
