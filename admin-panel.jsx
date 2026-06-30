@@ -865,6 +865,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const [password, setPassword] = React.useState("");
   const [loginLoading, setLoginLoading] = React.useState(false);
   const [loginError, setLoginError] = React.useState("");
+  const [authFallback, setAuthFallback] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState(() => localStorage.getItem(ADMIN_TAB_KEY) || "site");
   const [draft, setDraft] = React.useState(() => adminClone(content));
   const [dirty, setDirty] = React.useState(false);
@@ -889,7 +890,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
 
   // Auth: check Supabase session or fall back to localStorage passcode session
   React.useEffect(() => {
-    const sb = window.PortfolioSupabase;
+    const sb = authFallback ? null : window.PortfolioSupabase;
     if (sb) {
       sb.auth.getSession()
         .then(({ data: { session } }) => {
@@ -897,7 +898,10 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
           setAuthChecking(false);
         })
         .catch((error) => {
-          if (adminIsNetworkError(error)) adminDisableSupabase();
+          if (adminIsNetworkError(error)) {
+            adminDisableSupabase();
+            setAuthFallback(true);
+          }
           setUnlocked(localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
           setAuthChecking(false);
         });
@@ -909,7 +913,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
       setUnlocked(localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
       setAuthChecking(false);
     }
-  }, []);
+  }, [authFallback, sessionValue]);
 
   React.useEffect(() => {
     localStorage.setItem(ADMIN_TAB_KEY, activeTab);
@@ -1050,8 +1054,18 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
 
   const login = async (event) => {
     event.preventDefault();
-    const sb = window.PortfolioSupabase;
+    const sb = authFallback ? null : window.PortfolioSupabase;
     if (sb) {
+      if (passcode && password === passcode) {
+        adminDisableSupabase();
+        setAuthFallback(true);
+        localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
+        setUnlocked(true);
+        setLoginError("");
+        setEmail("");
+        setPassword("");
+        return;
+      }
       setLoginLoading(true);
       setLoginError("");
       try {
@@ -1061,6 +1075,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
       } catch (err) {
         if (adminIsNetworkError(err)) {
           adminDisableSupabase();
+          setAuthFallback(true);
           if (!passcode) {
             setLoginError("Supabase is unreachable and admin passcode is not configured.");
           } else if (password === passcode) {
@@ -1092,7 +1107,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   };
 
   const logout = async () => {
-    const sb = window.PortfolioSupabase;
+    const sb = authFallback ? null : window.PortfolioSupabase;
     if (sb) {
       await sb.auth.signOut().catch(() => {});
       // onAuthStateChange listener will set unlocked = false
@@ -1117,7 +1132,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   }
 
   if (!unlocked) {
-    const useSupabase = !!window.PortfolioSupabase;
+    const useSupabase = !!window.PortfolioSupabase && !authFallback;
     return (
       <div className="admin-overlay">
         <form className="admin-login" onSubmit={login}>
@@ -1132,6 +1147,22 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
           <button className="admin-primary" type="submit" disabled={loginLoading}>
             {loginLoading ? "Signing in…" : "Unlock"}
           </button>
+          {useSupabase && passcode && (
+            <button
+              type="button"
+              className="admin-secondary"
+              style={{ width: "100%", marginTop: 10 }}
+              onClick={() => {
+                adminDisableSupabase();
+                setAuthFallback(true);
+                setEmail("");
+                setPassword("");
+                setLoginError("Enter the site passcode to continue in browser-only mode.");
+              }}
+            >
+              Use passcode instead
+            </button>
+          )}
         </form>
       </div>
     );
