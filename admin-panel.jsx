@@ -310,6 +310,20 @@ function adminHash(value) {
   return String(hash >>> 0);
 }
 
+function adminIsNetworkError(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return (
+    error?.name === "TypeError" ||
+    message.includes("failed to fetch") ||
+    message.includes("network") ||
+    message.includes("load failed")
+  );
+}
+
+function adminDisableSupabase() {
+  window.PortfolioSupabase = null;
+}
+
 function adminClone(value) {
   return window.PortfolioContent.clone(value);
 }
@@ -877,10 +891,16 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   React.useEffect(() => {
     const sb = window.PortfolioSupabase;
     if (sb) {
-      sb.auth.getSession().then(({ data: { session } }) => {
-        setUnlocked(!!session);
-        setAuthChecking(false);
-      });
+      sb.auth.getSession()
+        .then(({ data: { session } }) => {
+          setUnlocked(!!session);
+          setAuthChecking(false);
+        })
+        .catch((error) => {
+          if (adminIsNetworkError(error)) adminDisableSupabase();
+          setUnlocked(localStorage.getItem(ADMIN_SESSION_KEY) === sessionValue);
+          setAuthChecking(false);
+        });
       const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
         setUnlocked(!!session);
       });
@@ -1039,7 +1059,22 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
         if (error) throw error;
         // onAuthStateChange listener will set unlocked = true
       } catch (err) {
-        setLoginError(err.message || "Login failed.");
+        if (adminIsNetworkError(err)) {
+          adminDisableSupabase();
+          if (!passcode) {
+            setLoginError("Supabase is unreachable and admin passcode is not configured.");
+          } else if (password === passcode) {
+            localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
+            setUnlocked(true);
+            setLoginError("");
+            setPassword("");
+          } else {
+            setPassword("");
+            setLoginError("Supabase is unreachable. Enter the site passcode to continue in browser-only mode.");
+          }
+        } else {
+          setLoginError(err.message || "Login failed.");
+        }
       } finally {
         setLoginLoading(false);
       }
