@@ -123,7 +123,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
                   <div className="work-thumb">
-                    <div className="work-thumb-inner">
+                    <div className={"work-thumb-inner" + (work.image ? " has-upload" : "")}>
                       {work.image
                         ? <img src={work.image} alt={work.title} />
                         : <Thumb palette={GD_PAL[work.pal] || GD_PAL[0]} title={work.title} num={work.num || "01"} />

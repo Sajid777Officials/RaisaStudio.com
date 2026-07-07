@@ -247,9 +247,9 @@ function CaseSheet({ caseId, onClose, content, activeSide }) {
           <button className="case-close" onClick={onClose}><CsClose size={12} sw={2} />Close case</button>
         </div>
 
-        <div className="case-hero-img">
+        <div className={"case-hero-img" + (data.image ? " has-upload" : "")}>
           {data.image
-            ? <img src={data.image} alt={data.title} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+            ? <img src={data.image} alt={data.title} />
             : <Thumb palette={pal} title={data.title} num={data.num || "26"} />
           }
         </div>

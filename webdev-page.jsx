@@ -245,7 +245,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
                   <div className="work-thumb">
-                    <div className="work-thumb-inner">
+                    <div className={"work-thumb-inner" + (work.image ? " has-upload" : "")}>
                       {work.image
                         ? <img src={work.image} alt={work.title} />
                         : <Thumb palette={WD_PAL[work.pal] || WD_PAL[0]} title={(work.title || "").split(" ")[0]} />

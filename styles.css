@@ -671,6 +671,13 @@ body {
 }
 .work-card:hover .work-thumb-inner { transform: scale(1.055); }
 .work-thumb-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.work-thumb-inner.has-upload {
+  background: #fff;
+}
+.work-card:hover .work-thumb-inner.has-upload { transform: none; }
+.work-thumb-inner.has-upload img {
+  object-fit: contain;
+}
 
 /* Category badge — always visible */
 .work-badge {
@@ -1039,6 +1046,20 @@ body {
   border-radius: 10px;
   overflow: hidden;
   position: relative;
+  background: #fff;
+}
+.case-hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.case-hero-img.has-upload {
+  aspect-ratio: auto;
+}
+.case-hero-img.has-upload img {
+  height: auto;
+  object-fit: contain;
 }
 
 .case-body {
@@ -1753,7 +1774,7 @@ body {
 
 .admin-image-preview-wrap { display: flex; flex-direction: column; gap: 10px; }
 .admin-image-preview {
-  width: 100%; max-height: 240px; object-fit: cover;
+  width: 100%; max-height: 240px; object-fit: contain; background: #fff;
   border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); display: block;
 }
 .admin-image-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1771,7 +1792,7 @@ body {
 }
 .admin-pick-thumb:hover { border-color: rgba(230,57,70,0.5); }
 .admin-pick-thumb.active { border-color: var(--red); }
-.admin-pick-thumb img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.admin-pick-thumb img { width: 100%; aspect-ratio: 4/3; object-fit: contain; display: block; background: #fff; }
 
 /* Uploads gallery grid */
 .admin-uploads-grid {
@@ -1783,7 +1804,7 @@ body {
   background: #f6f3ed; border: 1px solid rgba(0,0,0,0.08);
   border-radius: 8px; overflow: hidden;
 }
-.admin-upload-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+.admin-upload-img { width: 100%; aspect-ratio: 4/3; object-fit: contain; display: block; background: #fff; }
 .admin-upload-meta { padding: 10px 12px; }
 .admin-upload-name { font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-upload-size { font-family: var(--font-mono); font-size: 10px; color: rgba(17,17,17,0.5); margin-top: 2px; }
