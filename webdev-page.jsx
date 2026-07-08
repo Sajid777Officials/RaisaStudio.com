@@ -1,14 +1,149 @@
 // Software Development expanded page
-const { ArrowRight: WdArrowRight, ArrowOut: WdArrowOut, ArrowLeft: WdArrowLeft, webdev: WD_ICONS } = window.PortfolioIcons;
+const { ArrowRight: WdArrowRight, ArrowOut: WdArrowOut, ArrowLeft: WdArrowLeft, Close: WdClose, webdev: WD_ICONS } = window.PortfolioIcons;
 const { thumbs: WdThumbs, WEBDEV_PALETTES: WD_PAL } = window.PortfolioShared;
 
 const GITHUB_USERNAME = "Sajid777Officials";
+const WD_CATEGORY_THUMBS = ["WebApp", "Dashboard", "WebApp", "WebApp", "WebApp", "WebApp", "Dashboard", "Dashboard", "Code", "Code"];
 
 const LANG_COLORS = {
   JavaScript: "#f7df1e", TypeScript: "#3178c6", Python: "#3572A5",
   HTML: "#e34c26", CSS: "#563d7c", "C++": "#f34b7d", Java: "#b07219",
   Go: "#00ADD8", Rust: "#dea584", PHP: "#4F5D95", Swift: "#F05138",
 };
+
+function wdSlugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function wdCategoryFromService(service, index) {
+  const name = service.name || service.title || `Category ${index + 1}`;
+  const slug = wdSlugify(service.slug || service.id || name) || `category-${index + 1}`;
+  const order = Number.isFinite(Number(service.order)) ? Number(service.order) : index + 1;
+  const shortDescription = service.short_description || service.shortDescription || service.desc || "";
+  return {
+    ...service,
+    id: service.id || slug,
+    name,
+    title: service.title || name,
+    slug,
+    short_description: shortDescription,
+    desc: service.desc || shortDescription,
+    order,
+    num: service.num || String(order).padStart(2, "0"),
+    icon: Number.isFinite(Number(service.icon)) ? Number(service.icon) : index,
+    is_active: service.is_active !== false,
+  };
+}
+
+function wdProjectFromContent(project, index, categoryMap, categories) {
+  const fallbackCategory = categories[index % Math.max(categories.length, 1)] || {};
+  const title = project.title || `Build ${index + 1}`;
+  const categoryId = project.category_id || project.categoryId || project.category_slug || fallbackCategory.slug || "";
+  return {
+    ...project,
+    id: project.id || `project-${wdSlugify(title) || index + 1}`,
+    category_id: categoryId,
+    title,
+    slug: wdSlugify(project.slug || title),
+    short_description: project.short_description || project.shortDescription || project.desc || "",
+    full_description: project.full_description || project.fullDescription || project.description || "",
+    image_url: project.image_url || project.image || "",
+    gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
+    tags: Array.isArray(project.tags) ? project.tags : String(project.tags || "").split(",").map(tag => tag.trim()).filter(Boolean),
+    client_name: project.client_name || project.clientName || "",
+    project_date: project.project_date || project.projectDate || project.year || "",
+    stack: project.stack || project.tools || "",
+    is_featured: project.is_featured === true,
+    is_published: project.is_published !== false,
+    sort_order: Number.isFinite(Number(project.sort_order)) ? Number(project.sort_order) : index + 1,
+    thumb: project.thumb || categoryMap[categoryId]?.thumb || WD_CATEGORY_THUMBS[categoryMap[categoryId]?.icon] || "WebApp",
+    pal: Number.isFinite(Number(project.pal)) ? Number(project.pal) : index % WD_PAL.length,
+  };
+}
+
+function wdFormatDate(value) {
+  if (!value) return "";
+  if (/^\d{4}$/.test(String(value))) return value;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+}
+
+function WebDevProjectThumb({ project, category }) {
+  const image = project.image_url || project.image;
+  const thumbName = project.thumb || category?.thumb || WD_CATEGORY_THUMBS[category?.icon] || "WebApp";
+  const Thumb = WdThumbs[thumbName] || WdThumbs.WebApp;
+  const palette = WD_PAL[project.pal] || WD_PAL[(category?.icon || 0) % WD_PAL.length] || WD_PAL[0];
+
+  return (
+    <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")}>
+      {image
+        ? <img src={image} alt={project.title} />
+        : <Thumb palette={palette} title={project.title} num={project.num || String(project.sort_order || 1).padStart(2, "0")} />
+      }
+    </div>
+  );
+}
+
+function WebDevProjectModal({ project, category, onClose }) {
+  React.useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const projectDate = wdFormatDate(project.project_date);
+  const categoryName = category?.name || "Build";
+  const gallery = project.gallery_images || [];
+
+  return (
+    <div className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="webdev-project-lightbox-title" onClick={onClose}>
+      <div className="project-lightbox-panel" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close build preview">
+          <WdClose size={16} sw={2.2} />
+        </button>
+        <div className="project-lightbox-media">
+          <WebDevProjectThumb project={project} category={category} />
+        </div>
+        <div className="project-lightbox-body">
+          <div className="project-kicker">
+            <span>{categoryName}</span>
+            {project.is_featured && <span>Featured</span>}
+          </div>
+          <h3 id="webdev-project-lightbox-title">{project.title}</h3>
+          {project.short_description && <p className="project-modal-short">{project.short_description}</p>}
+          {project.full_description && <p className="project-modal-full">{project.full_description}</p>}
+          <div className="project-modal-meta">
+            {project.client_name && <div><span>Client</span>{project.client_name}</div>}
+            {projectDate && <div><span>Date</span>{projectDate}</div>}
+            {project.stack && <div><span>Stack</span>{project.stack}</div>}
+          </div>
+          {project.tags?.length > 0 && (
+            <div className="project-tag-row">
+              {project.tags.map((tag) => <span key={tag}>{tag}</span>)}
+            </div>
+          )}
+          {gallery.length > 0 && (
+            <div className="project-gallery-strip">
+              {gallery.map((item, index) => {
+                const src = typeof item === "string" ? item : item.image_url || item.url || item.src || "";
+                if (!src) return null;
+                return <img key={`${src}-${index}`} src={src} alt={`${project.title} gallery ${index + 1}`} />;
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function GitHubProjects() {
   const [repos, setRepos] = React.useState(null);
@@ -87,10 +222,73 @@ function GitHubProjects() {
 function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
   const studio = content?.studios?.webdev || {};
   const services = content?.services?.webdev || [];
-  const works = content?.works?.webdev || [];
+  const works = (content?.works?.webdev || []).filter(work => work.is_published !== false);
+  const projects = content?.projects?.webdev || [];
   const techStack = content?.techStack || [];
 
   const pageRef = React.useRef(null);
+  const showcaseRef = React.useRef(null);
+  const filterTimerRef = React.useRef(null);
+  const [activeCategory, setActiveCategory] = React.useState(null);
+  const [filtering, setFiltering] = React.useState(false);
+  const [visibleCount, setVisibleCount] = React.useState(6);
+  const [previewProject, setPreviewProject] = React.useState(null);
+
+  const categories = React.useMemo(() => (
+    services
+      .map(wdCategoryFromService)
+      .filter(category => category.is_active !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+  ), [services]);
+
+  const categoryMap = React.useMemo(() => (
+    categories.reduce((map, category) => {
+      map[category.slug] = category;
+      return map;
+    }, {})
+  ), [categories]);
+
+  const categoryProjects = React.useMemo(() => (
+    projects
+      .map((project, index) => wdProjectFromContent(project, index, categoryMap, categories))
+      .filter(project => project.is_published !== false)
+  ), [projects, categoryMap, categories]);
+
+  const selectedCategory = activeCategory ? categoryMap[activeCategory] : null;
+  const filteredProjects = React.useMemo(() => (
+    activeCategory
+      ? categoryProjects
+          .filter(project => project.category_id === activeCategory)
+          .sort((a, b) => Number(b.is_featured) - Number(a.is_featured) || (a.sort_order || 0) - (b.sort_order || 0) || a.title.localeCompare(b.title))
+      : []
+  ), [activeCategory, categoryProjects]);
+  const visibleProjects = filteredProjects.slice(0, visibleCount);
+
+  React.useEffect(() => () => {
+    if (filterTimerRef.current) clearTimeout(filterTimerRef.current);
+  }, []);
+
+  React.useEffect(() => {
+    if (activeCategory && !categoryMap[activeCategory]) setActiveCategory(null);
+  }, [activeCategory, categoryMap]);
+
+  const selectCategory = (category) => {
+    setActiveCategory(category.slug);
+    setVisibleCount(6);
+    setPreviewProject(null);
+    setFiltering(true);
+    if (filterTimerRef.current) clearTimeout(filterTimerRef.current);
+    filterTimerRef.current = setTimeout(() => setFiltering(false), 260);
+    window.setTimeout(() => {
+      showcaseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 40);
+  };
+
+  const clearCategory = () => {
+    setActiveCategory(null);
+    setPreviewProject(null);
+    pageRef.current?.querySelector(".service-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   React.useEffect(() => {
     const page = pageRef.current;
@@ -195,22 +393,120 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
             <h2 style={{ color: "white" }}>Services <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>/ ten disciplines</em></h2>
             <div className="section-meta">{studio.servicesMeta || "Click a category to scope work"}</div>
           </div>
-          <div className="service-grid">
-            {services.map((service, index) => {
+          <div className="service-grid" aria-label="Software development service categories">
+            {categories.map((service, index) => {
               const Icon = WD_ICONS[service.icon ?? index]?.Comp || WD_ICONS[0].Comp;
+              const isActive = activeCategory === service.slug;
               return (
-                <div key={service.num || service.title} className="service-card">
+                <button
+                  key={service.slug}
+                  type="button"
+                  className={"service-card" + (isActive ? " active" : "")}
+                  onClick={() => selectCategory(service)}
+                  aria-pressed={isActive}
+                  aria-controls="webdev-project-showcase"
+                >
                   <div>
                     <div className="svc-num">{service.num}</div>
-                    <div className="svc-icon"><Icon size={36} sw={1.5} /></div>
+                    <div className="svc-icon">
+                      {service.icon_url
+                        ? <img className="svc-icon-img" src={service.icon_url} alt="" />
+                        : <Icon size={36} sw={1.5} />
+                      }
+                    </div>
                     <div className="svc-title">{service.title}</div>
-                    <div style={{ fontSize: 13, lineHeight: 1.45, opacity: 0.6, marginTop: 12, fontFamily: "var(--font-body)" }}>{service.desc}</div>
+                    <div style={{ fontSize: 13, lineHeight: 1.45, opacity: 0.6, marginTop: 12, fontFamily: "var(--font-body)" }}>{service.short_description}</div>
                   </div>
                   <div className="svc-arrow"><WdArrowOut size={20} sw={1.8} /></div>
-                </div>
+                </button>
               );
             })}
           </div>
+
+          {activeCategory && (
+            <div ref={showcaseRef} id="webdev-project-showcase" className="project-showcase" aria-live="polite">
+              <div className="project-showcase-top">
+                <button type="button" className="project-back-btn" onClick={clearCategory}>
+                  <WdArrowLeft size={14} sw={2} /> All services
+                </button>
+                <div className="project-crumb">Services / {selectedCategory?.name}</div>
+              </div>
+              <div className="project-showcase-head">
+                <div>
+                  <div className="project-category-kicker">
+                    {filteredProjects.filter(project => project.is_featured).length > 0 ? "Featured builds first" : "Category builds"}
+                  </div>
+                  <h3>{selectedCategory?.name}</h3>
+                  <p>{selectedCategory?.short_description}</p>
+                </div>
+                <div className="project-count-pill">
+                  {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"}
+                </div>
+              </div>
+
+              {filtering ? (
+                <div className="category-project-grid">
+                  {[0, 1, 2].map((item) => <div key={item} className="category-project-card project-skeleton" />)}
+                </div>
+              ) : filteredProjects.length === 0 ? (
+                <div className="project-empty-state">
+                  <h4>No builds added yet for this category.</h4>
+                  <p>Add one from the admin panel and it will appear here automatically.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="category-project-grid">
+                    {visibleProjects.map((project, index) => {
+                      const projectCategory = categoryMap[project.category_id] || selectedCategory;
+                      const projectDate = wdFormatDate(project.project_date);
+                      return (
+                        <article key={project.id} className="category-project-card" style={{ "--reveal-delay": `${index * 60}ms` }}>
+                          <button
+                            type="button"
+                            className="category-project-image"
+                            onClick={() => setPreviewProject(project)}
+                            aria-label={`Preview ${project.title}`}
+                          >
+                            <WebDevProjectThumb project={project} category={projectCategory} />
+                            <span className="category-project-overlay">
+                              <span>View Build</span>
+                              <WdArrowOut size={14} sw={2} />
+                            </span>
+                            {project.is_featured && <span className="project-featured-badge">Featured</span>}
+                          </button>
+                          <div className="category-project-body">
+                            <div className="category-project-meta">
+                              <span className="category-project-badge">{projectCategory?.name || "Build"}</span>
+                              {projectDate && <span>{projectDate}</span>}
+                            </div>
+                            <h4>{project.title}</h4>
+                            <p>{project.short_description}</p>
+                            {project.stack && <div className="project-stack-line">{project.stack}</div>}
+                            {project.tags?.length > 0 && (
+                              <div className="project-tag-row compact">
+                                {project.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}
+                              </div>
+                            )}
+                            <div className="category-project-foot">
+                              {project.client_name && <span>{project.client_name}</span>}
+                              <button type="button" className="project-card-action" onClick={() => setPreviewProject(project)}>
+                                View details <WdArrowOut size={12} sw={2} />
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                  {filteredProjects.length > visibleCount && (
+                    <button type="button" className="project-load-more" onClick={() => setVisibleCount(count => count + 6)}>
+                      Load more <WdArrowRight size={15} sw={2} />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="portfolio-section">
@@ -224,6 +520,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
           <div className="portfolio-grid">
             {works.map((work) => {
               const Thumb = WdThumbs[work.thumb] || WdThumbs.WebApp;
+              const coverImage = work.cover_image_url || work.image;
               const tilt = (e) => {
                 const card = e.currentTarget;
                 const rect = card.getBoundingClientRect();
@@ -245,9 +542,9 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
                   <div className="work-thumb">
-                    <div className={"work-thumb-inner" + (work.image ? " has-upload" : "")}>
-                      {work.image
-                        ? <img src={work.image} alt={work.title} />
+                    <div className={"work-thumb-inner" + (coverImage ? " has-upload" : "")}>
+                      {coverImage
+                        ? <img src={coverImage} alt={work.cover_alt || work.title} loading="lazy" />
                         : <Thumb palette={WD_PAL[work.pal] || WD_PAL[0]} title={(work.title || "").split(" ")[0]} />
                       }
                     </div>
@@ -283,6 +580,13 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
           </div>
         </div>
       </div>
+      {previewProject && (
+        <WebDevProjectModal
+          project={previewProject}
+          category={categoryMap[previewProject.category_id] || selectedCategory}
+          onClose={() => setPreviewProject(null)}
+        />
+      )}
     </div>
   );
 }

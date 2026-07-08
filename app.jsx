@@ -169,6 +169,20 @@ function App() {
     document.title = base + suffix;
   }, [expanded, adminOpen, content.site?.metaTitle]);
 
+  useEffect(() => {
+    if (!caseId) return;
+    const activeWork = (content.works?.[expanded || "graphic"] || []).find(work => work.id === caseId || work.slug === caseId);
+    const activeCase = content.cases?.[caseId];
+    const caseTitle = activeWork?.title || activeCase?.title;
+    if (!caseTitle) return;
+    const base = content.site?.metaTitle || "RAISA Studio";
+    document.title = `${base} - ${caseTitle} Case Study`;
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+      meta.setAttribute("content", activeWork?.short_description || activeCase?.short_description || content.site?.metaDescription || "");
+    }
+  }, [expanded, caseId, content]);
+
   // ── Navigation helpers ──────────────────────────────────────────────────────
   const goHome        = () => go("");
   const goGraphic     = () => go("graphic");
@@ -248,6 +262,7 @@ function App() {
             activeSide={expanded}
             caseId={caseId}
             onClose={closeCase}
+            onNavigate={openCase}
           />
         </div>
 

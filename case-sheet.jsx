@@ -186,7 +186,7 @@ function findCaseWork(caseId, content, preferredSide, caseSide) {
   for (const side of sides) {
     if (seen.has(side)) continue;
     seen.add(side);
-    const work = content?.works?.[side]?.find((item) => item.id === caseId);
+    const work = content?.works?.[side]?.find((item) => item.id === caseId || item.slug === caseId);
     if (work) return { ...work, side };
   }
   return null;
@@ -201,8 +201,14 @@ function buildCaseFromWork(work) {
     thumb: work.thumb,
     pal: work.pal ?? 0,
     num: work.num,
-    image: work.image,
+    image: work.cover_image_url || work.image,
+    cover_image_url: work.cover_image_url || work.image || "",
+    gallery_images: work.gallery_images || [],
+    client_name: work.client_name || "",
+    short_description: work.short_description || "",
+    full_description: work.full_description || "",
     side_info: [
+      ["Client", work.client_name || ""],
       ["Year", work.year || ""],
       [work.side === "webdev" ? "Stack" : "Discipline", work.stack || work.cat || ""],
     ].filter((row) => row[1]),
@@ -218,45 +224,154 @@ function mergeCaseWithWork(baseData, linkedWork) {
   if (!baseData || !linkedWork) return baseData;
   return {
     ...baseData,
-    image: baseData.image || linkedWork.image,
+    image: baseData.image || baseData.cover_image_url || linkedWork.cover_image_url || linkedWork.image,
+    cover_image_url: baseData.cover_image_url || baseData.image || linkedWork.cover_image_url || linkedWork.image || "",
+    gallery_images: baseData.gallery_images || linkedWork.gallery_images || [],
+    client_name: baseData.client_name || linkedWork.client_name || "",
+    short_description: baseData.short_description || linkedWork.short_description || "",
+    full_description: baseData.full_description || linkedWork.full_description || "",
+    category_id: baseData.category_id || linkedWork.category_id || "",
     thumb: baseData.thumb || linkedWork.thumb,
     pal: baseData.pal ?? linkedWork.pal,
     num: baseData.num || linkedWork.num,
   };
 }
 
-function CaseSheet({ caseId, onClose, content, activeSide }) {
-  if (!caseId) return null;
-  const baseData = content?.cases?.[caseId] || CASE_DATA[caseId];
+function caseInfoValue(rows, key) {
+  const row = (rows || []).find(([label]) => String(label).toLowerCase() === String(key).toLowerCase());
+  return row ? row[1] : "";
+}
+
+function normalizeCaseImages(images, projectId, title) {
+  if (!Array.isArray(images)) return [];
+  return images
+    .map((image, index) => {
+      const imageUrl = typeof image === "string" ? image : (image.image_url || image.url || image.src || "");
+      return {
+        ...(typeof image === "string" ? {} : image),
+        id: (typeof image === "string" ? "" : image.id) || `${projectId || "case"}-gallery-${index + 1}`,
+        project_id: (typeof image === "string" ? "" : image.project_id) || projectId || "",
+        image_url: imageUrl,
+        caption: typeof image === "string" ? "" : (image.caption || ""),
+        alt_text: typeof image === "string" ? `${title} gallery image ${index + 1}` : (image.alt_text || image.alt || `${title} gallery image ${index + 1}`),
+        sort_order: Number.isFinite(Number(typeof image === "string" ? index + 1 : image.sort_order)) ? Number(typeof image === "string" ? index + 1 : image.sort_order) : index + 1,
+      };
+    })
+    .filter(image => image.image_url)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+}
+
+function CaseGeneratedThumb({ data, side, palette }) {
+  const Thumb = side === "graphic"
+    ? (CsThumbs[data.thumb] || CsThumbs.Brand)
+    : (CsThumbs[data.thumb] || CsThumbs.WebApp);
+  return <Thumb palette={palette} title={data.title} num={data.num || "26"} />;
+}
+
+function CaseRelatedThumb({ work, side }) {
+  const palettes = side === "webdev" ? CS_WD_PAL : CS_GD_PAL;
+  const Thumb = side === "webdev"
+    ? (CsThumbs[work.thumb] || CsThumbs.WebApp)
+    : (CsThumbs[work.thumb] || CsThumbs.Brand);
+  const cover = work.cover_image_url || work.image;
+  return cover
+    ? <img src={cover} alt={work.cover_alt || work.title} loading="lazy" />
+    : <Thumb palette={palettes[work.pal] || palettes[0]} title={work.title} num={work.num || "01"} />;
+}
+
+function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
+  const [lightboxIndex, setLightboxIndex] = React.useState(null);
+  const [loadedCaseId, setLoadedCaseId] = React.useState(null);
+  const baseData = caseId ? (content?.cases?.[caseId] || CASE_DATA[caseId]) : null;
   const linkedWork = findCaseWork(caseId, content, activeSide, baseData?.side);
   const data = mergeCaseWithWork(baseData || buildCaseFromWork(linkedWork), linkedWork);
-  if (!data) return null;
-  const pal = data.side === "graphic" ? CS_GD_PAL[data.pal] : CS_WD_PAL[data.pal];
-  const Thumb = data.side === "graphic"
-    ? (CsThumbs[data.thumb] || (caseId === "g1" ? CsThumbs.Packaging : caseId === "g2" || caseId === "g6" ? CsThumbs.Poster : caseId === "g5" ? CsThumbs.Social : CsThumbs.Brand))
-    : (CsThumbs[data.thumb] || (caseId === "w1" || caseId === "w6" ? CsThumbs.Dashboard : caseId === "w4" ? CsThumbs.Code : CsThumbs.WebApp));
+  const side = data?.side || linkedWork?.side || activeSide || "graphic";
+  const pal = side === "graphic" ? CS_GD_PAL[data?.pal || 0] : CS_WD_PAL[data?.pal || 0];
+  const Thumb = side === "graphic"
+    ? (CsThumbs[data?.thumb] || (caseId === "g1" ? CsThumbs.Packaging : caseId === "g2" || caseId === "g6" ? CsThumbs.Poster : caseId === "g5" ? CsThumbs.Social : CsThumbs.Brand))
+    : (CsThumbs[data?.thumb] || (caseId === "w1" || caseId === "w6" ? CsThumbs.Dashboard : caseId === "w4" ? CsThumbs.Code : CsThumbs.WebApp));
+
+  React.useEffect(() => {
+    if (!caseId) {
+      setLightboxIndex(null);
+      setLoadedCaseId(null);
+      return undefined;
+    }
+    setLightboxIndex(null);
+    setLoadedCaseId(null);
+    const timer = setTimeout(() => setLoadedCaseId(caseId), 180);
+    return () => clearTimeout(timer);
+  }, [caseId]);
+
+  const heroImage = data?.cover_image_url || data?.image || linkedWork?.cover_image_url || linkedWork?.image || "";
+  const galleryImages = normalizeCaseImages(data?.gallery_images || linkedWork?.gallery_images || [], linkedWork?.id || caseId, data?.title || "Project");
+  const lightboxImages = [
+    ...(heroImage && data ? [{ id: "cover", image_url: heroImage, caption: data.short_description || data.eyebrow || "", alt_text: data.cover_alt || data.title }] : []),
+    ...galleryImages,
+  ];
+  const currentLightbox = lightboxIndex == null ? null : lightboxImages[lightboxIndex];
+  const projectCategory = linkedWork?.cat || data?.category || data?.eyebrow?.replace(/^Case\s*[·-]\s*/i, "") || "Project";
+  const projectYear = data?.year || linkedWork?.year || caseInfoValue(data?.side_info, "Year");
+  const clientName = data?.client_name || linkedWork?.client_name || caseInfoValue(data?.side_info, "Client");
+  const shortDescription = data?.short_description || linkedWork?.short_description || data?.pull || "";
+  const fullDescription = data?.full_description || linkedWork?.full_description || "";
+  const sideWorks = (content?.works?.[side] || []).filter(work => work.is_published !== false);
+  const currentWorkIndex = sideWorks.findIndex(work => work.id === linkedWork?.id || work.id === caseId || work.slug === caseId);
+  const prevWork = currentWorkIndex > 0 ? sideWorks[currentWorkIndex - 1] : null;
+  const nextWork = currentWorkIndex >= 0 && currentWorkIndex < sideWorks.length - 1 ? sideWorks[currentWorkIndex + 1] : null;
+  const relatedWorks = sideWorks
+    .filter(work => work.id !== linkedWork?.id && (work.category_id && linkedWork?.category_id ? work.category_id === linkedWork.category_id : work.cat === linkedWork?.cat))
+    .slice(0, 3);
+
+  React.useEffect(() => {
+    if (!currentLightbox) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setLightboxIndex(null);
+      if (event.key === "ArrowLeft") setLightboxIndex(index => (index == null ? index : (index - 1 + lightboxImages.length) % lightboxImages.length));
+      if (event.key === "ArrowRight") setLightboxIndex(index => (index == null ? index : (index + 1) % lightboxImages.length));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [currentLightbox, lightboxImages.length]);
+
+  const openWork = (work) => {
+    if (!work || !onNavigate) return;
+    onNavigate({ ...work, side });
+  };
+
+  if (!caseId || !data) return null;
 
   return (
-    <div className={"case-sheet " + (data.side === "webdev" ? "webdev " : "") + (caseId ? "open" : "")}>
+    <div className={"case-sheet " + (side === "webdev" ? "webdev " : "") + (caseId ? "open" : "")}>
       <div className="case-scroll">
         <div className="case-head">
           <div className="left">
             <div className="case-eyebrow"><span style={{ width: 8, height: 8, background: "currentColor", borderRadius: 999, opacity: 0.6 }}></span>{data.eyebrow}</div>
             <h1 className="case-title">{data.title}</h1>
+            <div className="case-project-meta">
+              <span>{projectCategory}</span>
+              {projectYear && <span>{projectYear}</span>}
+              {clientName && <span>{clientName}</span>}
+            </div>
           </div>
           <button className="case-close" onClick={onClose}><CsClose size={12} sw={2} />Close case</button>
         </div>
 
-        <div className={"case-hero-img" + (data.image ? " has-upload" : "")}>
-          {data.image
-            ? <img src={data.image} alt={data.title} />
-            : <Thumb palette={pal} title={data.title} num={data.num || "26"} />
-          }
-        </div>
+        {loadedCaseId !== caseId ? (
+          <div className="case-hero-skeleton" aria-label="Loading case study"></div>
+        ) : heroImage ? (
+          <button type="button" className="case-hero-img has-upload clickable" onClick={() => setLightboxIndex(0)} aria-label={`Open ${data.title} cover image`}>
+            <img src={heroImage} alt={data.cover_alt || data.title} />
+          </button>
+        ) : (
+          <div className="case-hero-img">
+            <Thumb palette={pal} title={data.title} num={data.num || "26"} />
+          </div>
+        )}
 
         <div className="case-body">
           <div className="case-side">
-            {data.side_info.map(([k, v]) => (
+            {(data.side_info || []).map(([k, v]) => (
               <div className="row" key={k}>
                 <div className="k">{k}</div>
                 <div className="v">{v}</div>
@@ -264,15 +379,17 @@ function CaseSheet({ caseId, onClose, content, activeSide }) {
             ))}
           </div>
           <div className="case-content">
+            {shortDescription && <p className="case-short">{shortDescription}</p>}
             <h4>The challenge</h4>
             <p>{data.challenge}</p>
+            {fullDescription && <p>{fullDescription}</p>}
             <div className="pull">{data.pull}</div>
             <h4>Process</h4>
             <p>{data.process}</p>
             <h4>Tools &amp; stack</h4>
             <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 15, lineHeight: 1.7, opacity: 0.75 }}>{data.tools}</p>
             <div className="case-results">
-              {data.results.map(([num, suf, lbl]) => (
+              {(data.results || []).map(([num, suf, lbl]) => (
                 <div key={lbl}>
                   <div className="num">{num}<span className="accent">{suf}</span></div>
                   <div className="lbl">{lbl}</div>
@@ -281,7 +398,108 @@ function CaseSheet({ caseId, onClose, content, activeSide }) {
             </div>
           </div>
         </div>
+
+        <section className="case-gallery-section">
+          <div className="case-gallery-head">
+            <div>
+              <div className="case-eyebrow"><span></span>Project gallery</div>
+              <h2>Images from this project</h2>
+            </div>
+            <div className="case-gallery-count">{galleryImages.length} {galleryImages.length === 1 ? "image" : "images"}</div>
+          </div>
+          {galleryImages.length === 0 ? (
+            <div className="case-gallery-empty">
+              <h3>No gallery images added yet.</h3>
+              <p>Upload gallery images in the admin panel to build out this case study.</p>
+            </div>
+          ) : (
+            <div className="case-gallery-grid">
+              {galleryImages.map((image, index) => (
+                <button
+                  type="button"
+                  key={image.id}
+                  className={"case-gallery-item" + (index % 3 === 0 ? " wide" : "")}
+                  style={{ "--case-reveal-delay": `${index * 70}ms` }}
+                  onClick={() => setLightboxIndex((heroImage ? 1 : 0) + index)}
+                >
+                  <img src={image.image_url} alt={image.alt_text || `${data.title} gallery image ${index + 1}`} loading="lazy" />
+                  {image.caption && <span>{image.caption}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {(prevWork || nextWork) && (
+          <div className="case-project-nav">
+            <button type="button" disabled={!prevWork} onClick={() => openWork(prevWork)}>
+              <span>Previous Project</span>
+              <strong>{prevWork?.title || "None"}</strong>
+            </button>
+            <button type="button" disabled={!nextWork} onClick={() => openWork(nextWork)}>
+              <span>Next Project</span>
+              <strong>{nextWork?.title || "None"}</strong>
+            </button>
+          </div>
+        )}
+
+        {relatedWorks.length > 0 && (
+          <section className="case-related">
+            <div className="case-gallery-head">
+              <div>
+                <div className="case-eyebrow"><span></span>Related work</div>
+                <h2>More in {projectCategory}</h2>
+              </div>
+            </div>
+            <div className="case-related-grid">
+              {relatedWorks.map((work) => (
+                <button type="button" key={work.id} className="case-related-card" onClick={() => openWork(work)}>
+                  <div className="case-related-thumb"><CaseRelatedThumb work={work} side={side} /></div>
+                  <span>{work.cat}</span>
+                  <strong>{work.title}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
+
+      {currentLightbox && (
+        <div className="case-lightbox" role="dialog" aria-modal="true" aria-label={`${data.title} image preview`} onClick={() => setLightboxIndex(null)}>
+          <button type="button" className="case-lightbox-close" onClick={() => setLightboxIndex(null)} aria-label="Close image preview">
+            <CsClose size={14} sw={2} />
+          </button>
+          <button
+            type="button"
+            className="case-lightbox-arrow prev"
+            onClick={(event) => {
+              event.stopPropagation();
+              setLightboxIndex(index => (index - 1 + lightboxImages.length) % lightboxImages.length);
+            }}
+            aria-label="Previous image"
+          >
+            <CsArrowLeft size={22} sw={2} />
+          </button>
+          <figure className="case-lightbox-figure" onClick={(event) => event.stopPropagation()}>
+            <img src={currentLightbox.image_url} alt={currentLightbox.alt_text || data.title} />
+            <figcaption>
+              <span>{lightboxIndex + 1} / {lightboxImages.length}</span>
+              {currentLightbox.caption && <strong>{currentLightbox.caption}</strong>}
+            </figcaption>
+          </figure>
+          <button
+            type="button"
+            className="case-lightbox-arrow next"
+            onClick={(event) => {
+              event.stopPropagation();
+              setLightboxIndex(index => (index + 1) % lightboxImages.length);
+            }}
+            aria-label="Next image"
+          >
+            <span>Next</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

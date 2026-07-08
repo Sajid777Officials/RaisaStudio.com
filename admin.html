@@ -10,10 +10,15 @@
   <link rel="stylesheet" href="admin.css" />
 </head>
 <body>
-  <div id="admin-root"></div>
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
-  <script type="text/babel" src="admin.jsx"></script>
+  <div id="admin-root" style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center;">
+    <div>
+      <h1 style="font-family:Space Grotesk,system-ui,sans-serif;margin-bottom:10px;">Opening Admin Panel</h1>
+      <p style="font-family:Manrope,system-ui,sans-serif;color:#aaa;">The current CMS lives inside the main portfolio app.</p>
+      <p><a href="Portfolio.html#admin" style="color:#E63946;">Open Portfolio Admin</a></p>
+    </div>
+  </div>
+  <script>
+    window.location.replace("Portfolio.html#admin");
+  </script>
 </body>
 </html>

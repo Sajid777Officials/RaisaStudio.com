@@ -310,6 +310,10 @@ function adminHash(value) {
   return String(hash >>> 0);
 }
 
+function adminNormalizePasscode(value) {
+  return String(value ?? "").trim();
+}
+
 function adminIsNetworkError(error) {
   const message = String(error?.message || error || "").toLowerCase();
   return (
@@ -332,6 +336,45 @@ function adminNormalize(value) {
   return window.PortfolioContent.normalize
     ? window.PortfolioContent.normalize(value)
     : adminClone(value);
+}
+
+function adminSlugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function adminCategoryOptions(services = []) {
+  return services.map((service, index) => {
+    const label = service.name || service.title || `Category ${index + 1}`;
+    const slug = adminSlugify(service.slug || service.id || label) || `category-${index + 1}`;
+    return { value: slug, label };
+  });
+}
+
+function adminValidateContent(content) {
+  const errors = [];
+  ["graphic", "webdev"].forEach((side) => {
+    const seenSlugs = new Set();
+    (content.works?.[side] || []).forEach((work, index) => {
+      const label = `${side} project ${index + 1}`;
+      if (!String(work.title || "").trim()) errors.push(`${label}: title is required.`);
+      if (!String(work.slug || "").trim()) errors.push(`${work.title || label}: slug is required.`);
+      if (!String(work.category_id || work.cat || "").trim()) errors.push(`${work.title || label}: category is required.`);
+      if (!String(work.cover_image_url || work.image || work.thumb || "").trim()) errors.push(`${work.title || label}: cover image or generated thumbnail is required.`);
+      if (work.slug) {
+        if (seenSlugs.has(work.slug)) errors.push(`${work.title || label}: slug must be unique within ${side}.`);
+        seenSlugs.add(work.slug);
+      }
+      (work.gallery_images || []).forEach((image, imageIndex) => {
+        if (!String(image.image_url || "").trim()) errors.push(`${work.title || label}: gallery image ${imageIndex + 1} needs an image.`);
+      });
+    });
+  });
+  return errors[0] || "";
 }
 
 function moveArrayItem(items, index, direction) {
@@ -445,6 +488,66 @@ function AdminRowActions({ index, length, onMove, onRemove }) {
       <button type="button" className="admin-mini-button" disabled={index === 0} onClick={() => onMove(index, -1)}>Up</button>
       <button type="button" className="admin-mini-button" disabled={index === length - 1} onClick={() => onMove(index, 1)}>Down</button>
       <button type="button" className="admin-mini-button danger" onClick={() => onRemove(index)}>Remove</button>
+    </div>
+  );
+}
+
+function AdminGalleryEditor({ images = [], projectId, onChange }) {
+  const normalized = Array.isArray(images) ? images : [];
+  const updateImage = (index, key, value) => {
+    const next = normalized.map((image, imageIndex) => ({
+      ...image,
+      sort_order: image.sort_order || imageIndex + 1,
+    }));
+    next[index] = { ...next[index], [key]: value, updated_at: new Date().toISOString() };
+    onChange(next);
+  };
+  const addImage = () => {
+    const nextIndex = normalized.length + 1;
+    onChange([
+      ...normalized,
+      {
+        id: `${projectId || "project"}-gallery-${Date.now()}`,
+        project_id: projectId || "",
+        image_url: "",
+        caption: "",
+        alt_text: "",
+        sort_order: nextIndex,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+  };
+  const removeImage = (index) => {
+    if (!window.confirm("Remove this gallery image from the draft?")) return;
+    onChange(normalized.filter((_, imageIndex) => imageIndex !== index).map((image, imageIndex) => ({ ...image, sort_order: imageIndex + 1 })));
+  };
+  const moveImage = (index, direction) => {
+    onChange(moveArrayItem(normalized, index, direction).map((image, imageIndex) => ({ ...image, sort_order: imageIndex + 1 })));
+  };
+
+  return (
+    <div className="admin-gallery-editor">
+      <div className="admin-subsection-head">
+        <h4>Project gallery</h4>
+        <button type="button" className="admin-mini-button" onClick={addImage}>Add gallery image</button>
+      </div>
+      {normalized.length === 0 ? (
+        <div className="admin-gallery-empty">No gallery images yet. Add images here to show them inside the case study.</div>
+      ) : (
+        <div className="admin-gallery-list">
+          {normalized.map((image, index) => (
+            <div className="admin-gallery-card" key={image.id || index}>
+              <AdminImageUpload label={`Gallery image ${index + 1}`} value={image.image_url || ""} onChange={(value) => updateImage(index, "image_url", value)} />
+              <div className="admin-grid two">
+                <AdminText label="Caption" value={image.caption || ""} onChange={(value) => updateImage(index, "caption", value)} />
+                <AdminText label="Alt text" value={image.alt_text || ""} onChange={(value) => updateImage(index, "alt_text", value)} />
+              </div>
+              <AdminRowActions index={index} length={normalized.length} onMove={moveImage} onRemove={removeImage} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -585,6 +688,7 @@ function AdminStudioEditor({
   const works = draft.works[side] || [];
   const label = side === "graphic" ? "Graphic Studio" : "Web Studio";
   const thumbOptions = ADMIN_THUMBS[side];
+  const categoryOptions = adminCategoryOptions(services);
 
   return (
     <div className="admin-stack">
@@ -659,11 +763,30 @@ function AdminStudioEditor({
             <div className="admin-row-card work" key={`${work.id}-${index}`}>
               <AdminText label="Case ID" value={work.id} onChange={(value) => updateWork(side, index, "id", value)} />
               <AdminText label="Title" value={work.title} onChange={(value) => updateWork(side, index, "title", value)} />
+              <AdminText label="Slug" value={work.slug || ""} onChange={(value) => updateWork(side, index, "slug", adminSlugify(value))} />
               <AdminText label="Category" value={work.cat} onChange={(value) => updateWork(side, index, "cat", value)} />
+              <AdminSelect
+                label="Service category"
+                value={work.category_id || adminSlugify(work.cat)}
+                options={categoryOptions.length ? categoryOptions : [{ value: adminSlugify(work.cat || "selected-work"), label: work.cat || "Selected work" }]}
+                onChange={(value) => updateWork(side, index, "category_id", value)}
+              />
               <AdminText label="Year" value={work.year} onChange={(value) => updateWork(side, index, "year", value)} />
+              <AdminText label="Client name" value={work.client_name || ""} onChange={(value) => updateWork(side, index, "client_name", value)} />
               {side === "webdev" && (
                 <AdminText label="Stack" value={work.stack} onChange={(value) => updateWork(side, index, "stack", value)} />
               )}
+              <AdminText label="Short description" value={work.short_description || ""} textarea onChange={(value) => updateWork(side, index, "short_description", value)} />
+              <AdminText label="Full description" value={work.full_description || ""} textarea onChange={(value) => updateWork(side, index, "full_description", value)} />
+              <AdminSelect label="Published" value={work.is_published === false ? "no" : "yes"} options={[
+                { value: "yes", label: "Published" },
+                { value: "no", label: "Unpublished" },
+              ]} onChange={(value) => updateWork(side, index, "is_published", value === "yes")} />
+              <AdminSelect label="Featured" value={work.is_featured ? "yes" : "no"} options={[
+                { value: "no", label: "Not featured" },
+                { value: "yes", label: "Featured" },
+              ]} onChange={(value) => updateWork(side, index, "is_featured", value === "yes")} />
+              <AdminNumber label="Sort order" value={work.sort_order ?? index + 1} min={1} max={999} onChange={(value) => updateWork(side, index, "sort_order", value)} />
               <AdminSelect label="Thumbnail" value={work.thumb} options={thumbOptions} onChange={(value) => updateWork(side, index, "thumb", value)} />
               <AdminPaletteSelect label="Palette" value={work.pal ?? 0} side={side} onChange={(value) => updateWork(side, index, "pal", value)} />
               <AdminSelect label="Card size / aspect ratio" value={String(work.span ?? 4)} options={[
@@ -673,7 +796,16 @@ function AdminStudioEditor({
                 { value: "12", label: "12-col — full-width (21:9)" },
               ]} onChange={(value) => updateWork(side, index, "span", Number(value))} />
               <AdminText label="Thumb number" value={work.num} onChange={(value) => updateWork(side, index, "num", value)} />
-              <AdminImageUpload label="Thumbnail image (overrides generated thumb)" value={work.image || ""} onChange={(value) => updateWork(side, index, "image", value)} />
+              <AdminText label="Cover alt text" value={work.cover_alt || ""} onChange={(value) => updateWork(side, index, "cover_alt", value)} />
+              <AdminImageUpload label="Cover image for Selected Work grid" value={work.cover_image_url || work.image || ""} onChange={(value) => {
+                updateWork(side, index, "cover_image_url", value);
+                updateWork(side, index, "image", value);
+              }} />
+              <AdminGalleryEditor
+                images={work.gallery_images || []}
+                projectId={work.id}
+                onChange={(images) => updateWork(side, index, "gallery_images", images)}
+              />
               <AdminRowActions index={index} length={works.length} onMove={(itemIndex, direction) => moveWork(side, itemIndex, direction)} onRemove={(itemIndex) => removeWork(side, itemIndex)} />
             </div>
           ))}
@@ -857,7 +989,7 @@ function AdminDataEditor({ draft, setDraft, save, reset, setStatus }) {
 
 function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const config = window.PortfolioConfig || {};
-  const passcode = config.adminPasscode || window.PORTFOLIO_ADMIN_PASSCODE || "";
+  const passcode = adminNormalizePasscode(config.adminPasscode || window.PORTFOLIO_ADMIN_PASSCODE || "");
   const sessionValue = passcode ? `pass:${adminHash(passcode)}` : "";
   const [unlocked, setUnlocked] = React.useState(false);
   const [authChecking, setAuthChecking] = React.useState(true);
@@ -952,20 +1084,37 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const addWork = (side) => mutate((next) => {
     const prefix = side === "graphic" ? "g" : "w";
     const count = next.works[side].length + 1;
+    const title = "New Project";
+    const categoryLabel = side === "graphic" ? "Brand Identity" : "Website";
     next.works[side].push({
       id: `${prefix}${count}`,
-      title: "New Project",
-      cat: side === "graphic" ? "Brand Identity" : "Website",
+      title,
+      slug: adminSlugify(`${title} ${count}`),
+      category_id: adminSlugify(categoryLabel),
+      cat: categoryLabel,
       year: String(new Date().getFullYear()),
       stack: side === "webdev" ? "React - CSS - Node" : undefined,
+      client_name: "",
+      cover_image_url: "",
+      short_description: "",
+      full_description: "",
+      gallery_images: [],
+      is_featured: false,
+      is_published: true,
+      sort_order: count,
       thumb: side === "graphic" ? "Brand" : "WebApp",
       pal: 0,
       span: 4,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
   });
-  const removeWork = (side, index) => mutate((next) => {
-    next.works[side] = next.works[side].filter((_, itemIndex) => itemIndex !== index);
-  });
+  const removeWork = (side, index) => {
+    if (!window.confirm("Delete this project from the draft?")) return;
+    mutate((next) => {
+      next.works[side] = next.works[side].filter((_, itemIndex) => itemIndex !== index);
+    });
+  };
   const moveWork = (side, index, direction) => mutate((next) => {
     next.works[side] = moveArrayItem(next.works[side], index, direction);
   });
@@ -1008,6 +1157,13 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
     setSaving(true);
     try {
       const normalized = adminNormalize(draft);
+      const validationError = adminValidateContent(normalized);
+      if (validationError) {
+        setDraft(adminClone(normalized));
+        setDirty(true);
+        setStatus(validationError, true);
+        return;
+      }
       await window.PortfolioContent.save(normalized);
       onSave(adminClone(normalized));
       setDraft(adminClone(normalized));
@@ -1055,8 +1211,9 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const login = async (event) => {
     event.preventDefault();
     const sb = authFallback ? null : window.PortfolioSupabase;
+    const submittedPasscode = adminNormalizePasscode(password);
     if (sb) {
-      if (passcode && password === passcode) {
+      if (passcode && submittedPasscode === passcode) {
         adminDisableSupabase();
         setAuthFallback(true);
         localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
@@ -1078,7 +1235,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
           setAuthFallback(true);
           if (!passcode) {
             setLoginError("Supabase is unreachable and admin passcode is not configured.");
-          } else if (password === passcode) {
+          } else if (submittedPasscode === passcode) {
             localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
             setUnlocked(true);
             setLoginError("");
@@ -1095,13 +1252,13 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
       }
     } else {
       if (!passcode) { setLoginError("Admin passcode is not configured."); return; }
-      if (password === passcode) {
+      if (submittedPasscode === passcode) {
         localStorage.setItem(ADMIN_SESSION_KEY, sessionValue);
         setUnlocked(true);
         setLoginError("");
         setPassword("");
       } else {
-        setLoginError("Wrong passcode.");
+        setLoginError("Wrong passcode. Use the value set in Portfolio.html -> PortfolioConfig.adminPasscode.");
       }
     }
   };
