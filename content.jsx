@@ -890,6 +890,30 @@ function normalizeProject(project, index, categories) {
   };
 }
 
+function hasUsableCategoryProject(project) {
+  return Boolean(
+    String(project?.title || "").trim() &&
+    String(project?.category_id || project?.categoryId || project?.category_slug || "").trim()
+  );
+}
+
+function normalizeCategoryProjects(projects, categories, defaultProjects) {
+  const validCategoryIds = new Set((categories || []).map(category => category.slug).filter(Boolean));
+  const savedProjects = Array.isArray(projects) ? projects : [];
+  const normalizedSaved = savedProjects
+    .map((project, index) => ({ raw: project, normalized: normalizeProject(project, index, categories) }))
+    .filter(({ raw, normalized }) => hasUsableCategoryProject(raw) && validCategoryIds.has(normalized.category_id))
+    .map(({ normalized }) => normalized);
+
+  const coveredCategoryIds = new Set(normalizedSaved.map(project => project.category_id));
+  const missingDefaults = (defaultProjects || [])
+    .filter(project => project.category_id && !coveredCategoryIds.has(project.category_id))
+    .map((project, index) => normalizeProject(project, normalizedSaved.length + index, categories));
+
+  return [...normalizedSaved, ...missingDefaults]
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+}
+
 function normalizeProjectImages(images, projectId) {
   if (!Array.isArray(images)) return [];
   return images
@@ -968,17 +992,16 @@ function normalizePortfolioContent(content) {
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   normalized.projects = normalized.projects || {};
-  normalized.projects.graphic = (normalized.projects.graphic || [])
-    .map((project, index) => normalizeProject(project, index, normalized.services.graphic))
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  normalized.projects.webdev = (normalized.projects.webdev || [])
-    .map((project, index) => normalizeProject(project, index, normalized.services.webdev))
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  if (normalized.projects.webdev.length === 0) {
-    normalized.projects.webdev = WEBDEV_CATEGORY_PROJECTS
-      .map((project, index) => normalizeProject(project, index, normalized.services.webdev))
-      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-  }
+  normalized.projects.graphic = normalizeCategoryProjects(
+    normalized.projects.graphic,
+    normalized.services.graphic,
+    GRAPHIC_CATEGORY_PROJECTS
+  );
+  normalized.projects.webdev = normalizeCategoryProjects(
+    normalized.projects.webdev,
+    normalized.services.webdev,
+    WEBDEV_CATEGORY_PROJECTS
+  );
 
   normalized.works = normalized.works || {};
   normalized.works.graphic = (normalized.works.graphic || [])
