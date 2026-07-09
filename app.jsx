@@ -77,6 +77,78 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "redTagStyle": "fill"
 }/*EDITMODE-END*/;
 
+function getFullscreenImage(target) {
+  const img = target?.closest?.("img");
+  if (!img) return null;
+  if (img.closest(".global-image-viewer, .admin-overlay, .admin-shell, .twk-panel, .loading-screen, .nav")) return null;
+  if (img.closest(".svc-icon") || img.classList.contains("svc-icon-img")) return null;
+
+  const rect = img.getBoundingClientRect();
+  if (rect.width < 72 && rect.height < 72) return null;
+
+  const src = img.currentSrc || img.src || img.getAttribute("src");
+  if (!src || src.startsWith("data:image/svg+xml")) return null;
+
+  const alt = img.getAttribute("alt") || img.closest("[aria-label]")?.getAttribute("aria-label") || "Project image";
+  return { src, alt };
+}
+
+function GlobalImageViewer() {
+  const [image, setImage] = useState(null);
+  const CloseIcon = window.PortfolioIcons?.Close;
+
+  useEffect(() => {
+    const openFromClick = (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const imageData = getFullscreenImage(event.target);
+      if (!imageData) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      setImage(imageData);
+    };
+
+    document.addEventListener("click", openFromClick, true);
+    return () => document.removeEventListener("click", openFromClick, true);
+  }, []);
+
+  useEffect(() => {
+    if (!image) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKey = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      setImage(null);
+    };
+
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey, true);
+    };
+  }, [image]);
+
+  if (!image) return null;
+
+  return (
+    <div className="global-image-viewer" role="dialog" aria-modal="true" aria-label="Fullscreen image preview" onClick={() => setImage(null)}>
+      <button type="button" className="global-image-viewer-close" onClick={() => setImage(null)} aria-label="Close fullscreen image">
+        {CloseIcon ? <CloseIcon size={18} sw={2.2} /> : "x"}
+      </button>
+      <figure className="global-image-viewer-figure" onClick={(event) => event.stopPropagation()}>
+        <img src={image.src} alt={image.alt} />
+        {image.alt && <figcaption>{image.alt}</figcaption>}
+      </figure>
+    </div>
+  );
+}
+
 // ─── Router helpers ───────────────────────────────────────────────────────────
 function parseHash() {
   const h = window.location.hash.replace(/^#\/?/, "").trim();
@@ -317,6 +389,7 @@ function App() {
           onClose={closeAdmin}
         />
       )}
+      <GlobalImageViewer />
     </div>
   );
 }
