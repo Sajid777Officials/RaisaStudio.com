@@ -761,11 +761,11 @@ const PORTFOLIO_DEFAULT_CONTENT = {
       portfolioTitle: "Selected work",
       portfolioMeta: "06 of 120 - Click for case",
       servicesMeta: "Click a category to brief us",
-      ctaTitlePre: "Got a brand ",
-      ctaTitleEm: "worth",
-      ctaTitleSecond: "looking at?",
-      ctaText: "Brief us in 90 seconds. Most projects start within a week and ship the first proof inside 10 days.",
-      ctaButton: "Start a graphic brief",
+      aboutEyebrow: "About us",
+      aboutTitle: "A focused studio for brands that need to look intentional everywhere.",
+      aboutLead: "RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.",
+      aboutBody: "We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.",
+      aboutPillars: ["Brand systems", "Print-ready craft", "Launch support"],
     },
     webdev: {
       heroEyebrow: "02 - Discipline B",
@@ -792,11 +792,11 @@ const PORTFOLIO_DEFAULT_CONTENT = {
       portfolioTitle: "Selected builds",
       portfolioMeta: "06 of 84 - Click for case",
       servicesMeta: "Click a category to scope work",
-      ctaTitlePre: "Need a site that ",
-      ctaTitleEm: "actually",
-      ctaTitleSecond: "performs?",
-      ctaText: "Send us a brief or a Figma file. We scope, quote and start within a week - most marketing sites ship in 12 working days.",
-      ctaButton: "Start a build brief",
+      aboutEyebrow: "About us",
+      aboutTitle: "A software studio for fast, usable products that keep working after launch.",
+      aboutLead: "RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.",
+      aboutBody: "We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.",
+      aboutPillars: ["Fast interfaces", "Stable backends", "Clean handoff"],
     },
   },
   services: {
@@ -863,18 +863,19 @@ function normalizeProject(project, index, categories) {
   const fallbackCategory = categories[index % Math.max(categories.length, 1)] || {};
   const categoryId = project.category_id || project.categoryId || project.category_slug || fallbackCategory.slug || "";
   const slug = contentSlugify(project.slug || title) || `project-${index + 1}`;
+  const id = project.id || `project-${slug}`;
   const imageUrl = project.image_url || project.image || "";
 
   return {
     ...project,
-    id: project.id || `project-${slug}`,
+    id,
     category_id: categoryId,
     title,
     slug,
     short_description: project.short_description || project.shortDescription || project.desc || "",
     full_description: project.full_description || project.fullDescription || project.description || "",
     image_url: imageUrl,
-    gallery_images: Array.isArray(project.gallery_images) ? project.gallery_images : [],
+    gallery_images: normalizeProjectImages(project.gallery_images || project.images || [], id),
     tags: Array.isArray(project.tags)
       ? project.tags
       : String(project.tags || "").split(",").map(tag => tag.trim()).filter(Boolean),

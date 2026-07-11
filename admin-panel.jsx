@@ -355,12 +355,34 @@ function adminCategoryOptions(services = []) {
   });
 }
 
+
+function adminTagsToText(tags) {
+  return Array.isArray(tags) ? tags.join(", ") : String(tags || "");
+}
+
+function adminTextToTags(value) {
+  return String(value || "").split(",").map(tag => tag.trim()).filter(Boolean);
+}
+
+function adminDefaultCategory(services = [], index = 0) {
+  const options = adminCategoryOptions(services);
+  return options[index % Math.max(options.length, 1)]?.value || "selected-work";
+}
+
 function adminValidateContent(content) {
   const errors = [];
   ["graphic", "webdev"].forEach((side) => {
+    const validCategories = new Set((content.services?.[side] || []).map(service => service.slug || service.id).filter(Boolean));
+    (content.projects?.[side] || []).forEach((project, index) => {
+      const label = `${side} service project ${index + 1}`;
+      if (!String(project.title || "").trim()) errors.push(`${label}: title is required.`);
+      if (!String(project.category_id || "").trim()) errors.push(`${project.title || label}: service category is required.`);
+      if (project.category_id && validCategories.size && !validCategories.has(project.category_id)) errors.push(`${project.title || label}: service category does not match an active service.`);
+    });
+
     const seenSlugs = new Set();
     (content.works?.[side] || []).forEach((work, index) => {
-      const label = `${side} project ${index + 1}`;
+      const label = `${side} selected work ${index + 1}`;
       if (!String(work.title || "").trim()) errors.push(`${label}: title is required.`);
       if (!String(work.slug || "").trim()) errors.push(`${work.title || label}: slug is required.`);
       if (!String(work.category_id || work.cat || "").trim()) errors.push(`${work.title || label}: category is required.`);
@@ -669,6 +691,35 @@ function AdminTechStackEditor({ stack = [], onChange }) {
   );
 }
 
+function AdminPillarEditor({ pillars = [], onChange }) {
+  const normalized = Array.isArray(pillars) ? pillars : [];
+  const updateItem = (index, value) => {
+    const next = [...normalized];
+    next[index] = value;
+    onChange(next);
+  };
+  const addItem = () => onChange([...normalized, "New pillar"]);
+  const removeItem = (index) => onChange(normalized.filter((_, itemIndex) => itemIndex !== index));
+  const moveItem = (index, direction) => onChange(moveArrayItem(normalized, index, direction));
+
+  return (
+    <div className="admin-subsection">
+      <div className="admin-subsection-head">
+        <h4>About pillars</h4>
+        <button type="button" className="admin-mini-button" onClick={addItem}>Add pillar</button>
+      </div>
+      <div className="admin-list">
+        {normalized.map((pillar, index) => (
+          <div className="admin-row-card stack" key={`${pillar}-${index}`}>
+            <AdminText label="Pillar" value={pillar} onChange={(value) => updateItem(index, value)} />
+            <AdminRowActions index={index} length={normalized.length} onMove={moveItem} onRemove={removeItem} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AdminStudioEditor({
   side,
   draft,
@@ -678,6 +729,10 @@ function AdminStudioEditor({
   addService,
   removeService,
   moveService,
+  updateCategoryProject,
+  addCategoryProject,
+  removeCategoryProject,
+  moveCategoryProject,
   updateWork,
   addWork,
   removeWork,
@@ -685,10 +740,12 @@ function AdminStudioEditor({
 }) {
   const studio = draft.studios[side];
   const services = draft.services[side] || [];
+  const categoryProjects = draft.projects?.[side] || [];
   const works = draft.works[side] || [];
   const label = side === "graphic" ? "Graphic Studio" : "Web Studio";
   const thumbOptions = ADMIN_THUMBS[side];
   const categoryOptions = adminCategoryOptions(services);
+  const aboutPillars = Array.isArray(studio.aboutPillars) ? studio.aboutPillars : [];
 
   return (
     <div className="admin-stack">
@@ -696,7 +753,7 @@ function AdminStudioEditor({
         <div className="admin-section-head">
           <div>
             <h3>{label}</h3>
-            <span>Hero, page copy, stats, and CTA text</span>
+            <span>Hero, page copy, stats, and about text</span>
           </div>
         </div>
         <div className="admin-grid two">
@@ -721,12 +778,12 @@ function AdminStudioEditor({
           <AdminText label="Portfolio title" value={studio.portfolioTitle} onChange={(value) => updateStudio(side, "portfolioTitle", value)} />
           <AdminText label="Portfolio meta" value={studio.portfolioMeta} onChange={(value) => updateStudio(side, "portfolioMeta", value)} />
           <AdminText label="Services meta" value={studio.servicesMeta} onChange={(value) => updateStudio(side, "servicesMeta", value)} />
-          <AdminText label="CTA button" value={studio.ctaButton} onChange={(value) => updateStudio(side, "ctaButton", value)} />
-          <AdminText label="CTA title prefix" value={studio.ctaTitlePre} onChange={(value) => updateStudio(side, "ctaTitlePre", value)} />
-          <AdminText label="CTA italic word" value={studio.ctaTitleEm} onChange={(value) => updateStudio(side, "ctaTitleEm", value)} />
-          <AdminText label="CTA second line" value={studio.ctaTitleSecond} onChange={(value) => updateStudio(side, "ctaTitleSecond", value)} />
+          <AdminText label="About eyebrow" value={studio.aboutEyebrow} onChange={(value) => updateStudio(side, "aboutEyebrow", value)} />
         </div>
-        <AdminText label="CTA text" value={studio.ctaText} textarea onChange={(value) => updateStudio(side, "ctaText", value)} />
+        <AdminText label="About title" value={studio.aboutTitle} textarea onChange={(value) => updateStudio(side, "aboutTitle", value)} />
+        <AdminText label="About lead" value={studio.aboutLead} textarea onChange={(value) => updateStudio(side, "aboutLead", value)} />
+        <AdminText label="About body" value={studio.aboutBody} textarea onChange={(value) => updateStudio(side, "aboutBody", value)} />
+        <AdminPillarEditor pillars={aboutPillars} onChange={(pillars) => updateStudio(side, "aboutPillars", pillars)} />
       </section>
 
       <section className="admin-section">
@@ -745,6 +802,60 @@ function AdminStudioEditor({
               <AdminText label="Description" value={service.desc} onChange={(value) => updateService(side, index, "desc", value)} />
               <AdminNumber label="Icon index" value={service.icon ?? index} max={9} onChange={(value) => updateService(side, index, "icon", value)} />
               <AdminRowActions index={index} length={services.length} onMove={(itemIndex, direction) => moveService(side, itemIndex, direction)} onRemove={(itemIndex) => removeService(side, itemIndex)} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <div className="admin-section-head">
+          <div>
+            <h3>Service Category Projects</h3>
+            <span>{categoryProjects.length} projects shown after clicking service cards</span>
+          </div>
+          <button type="button" className="admin-secondary" onClick={() => addCategoryProject(side)}>Add category project</button>
+        </div>
+        <div className="admin-list">
+          {categoryProjects.map((project, index) => (
+            <div className="admin-row-card work" key={`${project.id || project.slug}-${index}`}>
+              <AdminText label="Project ID" value={project.id || ""} onChange={(value) => updateCategoryProject(side, index, "id", value)} />
+              <AdminText label="Title" value={project.title || ""} onChange={(value) => updateCategoryProject(side, index, "title", value)} />
+              <AdminText label="Slug" value={project.slug || ""} onChange={(value) => updateCategoryProject(side, index, "slug", adminSlugify(value))} />
+              <AdminSelect
+                label="Service category"
+                value={project.category_id || adminDefaultCategory(services, index)}
+                options={categoryOptions.length ? categoryOptions : [{ value: project.category_id || "selected-work", label: project.category_id || "Selected work" }]}
+                onChange={(value) => updateCategoryProject(side, index, "category_id", value)}
+              />
+              <AdminText label="Project date / year" value={project.project_date || ""} onChange={(value) => updateCategoryProject(side, index, "project_date", value)} />
+              <AdminText label="Client name" value={project.client_name || ""} onChange={(value) => updateCategoryProject(side, index, "client_name", value)} />
+              {side === "webdev" && (
+                <AdminText label="Stack" value={project.stack || ""} onChange={(value) => updateCategoryProject(side, index, "stack", value)} />
+              )}
+              <AdminText label="Short description" value={project.short_description || ""} textarea onChange={(value) => updateCategoryProject(side, index, "short_description", value)} />
+              <AdminText label="Full description" value={project.full_description || ""} textarea onChange={(value) => updateCategoryProject(side, index, "full_description", value)} />
+              <AdminText label="Tags, comma separated" value={adminTagsToText(project.tags)} onChange={(value) => updateCategoryProject(side, index, "tags", adminTextToTags(value))} />
+              <AdminSelect label="Published" value={project.is_published === false ? "no" : "yes"} options={[
+                { value: "yes", label: "Published" },
+                { value: "no", label: "Unpublished" },
+              ]} onChange={(value) => updateCategoryProject(side, index, "is_published", value === "yes")} />
+              <AdminSelect label="Featured" value={project.is_featured ? "yes" : "no"} options={[
+                { value: "no", label: "Not featured" },
+                { value: "yes", label: "Featured" },
+              ]} onChange={(value) => updateCategoryProject(side, index, "is_featured", value === "yes")} />
+              <AdminNumber label="Sort order" value={project.sort_order ?? index + 1} min={1} max={999} onChange={(value) => updateCategoryProject(side, index, "sort_order", value)} />
+              <AdminSelect label="Thumbnail" value={project.thumb || (side === "webdev" ? "WebApp" : "Brand")} options={thumbOptions} onChange={(value) => updateCategoryProject(side, index, "thumb", value)} />
+              <AdminPaletteSelect label="Palette" value={project.pal ?? 0} side={side} onChange={(value) => updateCategoryProject(side, index, "pal", value)} />
+              <AdminImageUpload label="Main image shown in service project card" value={project.image_url || project.image || ""} onChange={(value) => {
+                updateCategoryProject(side, index, "image_url", value);
+                updateCategoryProject(side, index, "image", value);
+              }} />
+              <AdminGalleryEditor
+                images={project.gallery_images || []}
+                projectId={project.id || project.slug}
+                onChange={(images) => updateCategoryProject(side, index, "gallery_images", images)}
+              />
+              <AdminRowActions index={index} length={categoryProjects.length} onMove={(itemIndex, direction) => moveCategoryProject(side, itemIndex, direction)} onRemove={(itemIndex) => removeCategoryProject(side, itemIndex)} />
             </div>
           ))}
         </div>
@@ -1065,6 +1176,12 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
   const updateStudio = (side, key, value) => mutate((next) => { next.studios[side][key] = value; });
   const updateStudioStats = (side, key, value) => mutate((next) => { next.studios[side][key] = value; });
   const updateService = (side, index, key, value) => mutate((next) => { next.services[side][index][key] = value; });
+  const updateCategoryProject = (side, index, key, value) => mutate((next) => {
+    next.projects = next.projects || { graphic: [], webdev: [] };
+    next.projects[side] = next.projects[side] || [];
+    next.projects[side][index][key] = value;
+    next.projects[side][index].updated_at = new Date().toISOString();
+  });
   const updateWork = (side, index, key, value) => mutate((next) => { next.works[side][index][key] = value; });
   const updateCase = (caseId, key, value) => mutate((next) => { next.cases[caseId][key] = value; });
   const updateCaseInfo = (caseId, rows) => mutate((next) => { next.cases[caseId].side_info = rows; });
@@ -1072,13 +1189,66 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
 
   const addService = (side) => mutate((next) => {
     const count = next.services[side].length + 1;
-    next.services[side].push({ num: String(count).padStart(2, "0"), title: "New service", desc: "Short service description.", icon: Math.min(count - 1, 9) });
+    const title = "New service";
+    next.services[side].push({
+      id: `service-${Date.now()}`,
+      slug: adminSlugify(`${title} ${count}`),
+      num: String(count).padStart(2, "0"),
+      title,
+      name: title,
+      desc: "Short service description.",
+      short_description: "Short service description.",
+      icon: Math.min(count - 1, 9),
+      order: count,
+      is_active: true,
+    });
   });
   const removeService = (side, index) => mutate((next) => {
     next.services[side] = next.services[side].filter((_, itemIndex) => itemIndex !== index);
   });
   const moveService = (side, index, direction) => mutate((next) => {
     next.services[side] = moveArrayItem(next.services[side], index, direction);
+  });
+
+  const addCategoryProject = (side) => mutate((next) => {
+    next.projects = next.projects || { graphic: [], webdev: [] };
+    next.projects[side] = next.projects[side] || [];
+    const count = next.projects[side].length + 1;
+    const title = side === "graphic" ? "New Design Project" : "New Web Project";
+    const categoryId = adminDefaultCategory(next.services?.[side] || [], count - 1);
+    next.projects[side].push({
+      id: `${side === "webdev" ? "web" : "design"}-project-${Date.now()}`,
+      category_id: categoryId,
+      title,
+      slug: adminSlugify(`${title} ${count}`),
+      short_description: "Short project description.",
+      full_description: "Longer project details.",
+      image_url: "",
+      gallery_images: [],
+      tags: [],
+      client_name: "",
+      project_date: String(new Date().getFullYear()),
+      stack: side === "webdev" ? "React - Supabase" : undefined,
+      is_featured: false,
+      is_published: true,
+      sort_order: count,
+      thumb: side === "webdev" ? "WebApp" : "Brand",
+      pal: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+  });
+  const removeCategoryProject = (side, index) => {
+    if (!window.confirm("Delete this service category project from the draft?")) return;
+    mutate((next) => {
+      next.projects = next.projects || { graphic: [], webdev: [] };
+      next.projects[side] = (next.projects[side] || []).filter((_, itemIndex) => itemIndex !== index);
+    });
+  };
+  const moveCategoryProject = (side, index, direction) => mutate((next) => {
+    next.projects = next.projects || { graphic: [], webdev: [] };
+    next.projects[side] = moveArrayItem(next.projects[side] || [], index, direction)
+      .map((project, projectIndex) => ({ ...project, sort_order: projectIndex + 1, updated_at: new Date().toISOString() }));
   });
 
   const addWork = (side) => mutate((next) => {
@@ -1419,6 +1589,10 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
               addService={addService}
               removeService={removeService}
               moveService={moveService}
+              updateCategoryProject={updateCategoryProject}
+              addCategoryProject={addCategoryProject}
+              removeCategoryProject={removeCategoryProject}
+              moveCategoryProject={moveCategoryProject}
               updateWork={updateWork}
               addWork={addWork}
               removeWork={removeWork}
@@ -1436,6 +1610,10 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
               addService={addService}
               removeService={removeService}
               moveService={moveService}
+              updateCategoryProject={updateCategoryProject}
+              addCategoryProject={addCategoryProject}
+              removeCategoryProject={removeCategoryProject}
+              moveCategoryProject={moveCategoryProject}
               updateWork={updateWork}
               addWork={addWork}
               removeWork={removeWork}

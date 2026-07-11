@@ -219,13 +219,15 @@ function GitHubProjects() {
   );
 }
 
-function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
+function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSection }) {
   const studio = content?.studios?.webdev || {};
   const services = content?.services?.webdev || [];
   const works = (content?.works?.webdev || []).filter(work => work.is_published !== false);
   const projects = content?.projects?.webdev || [];
   const techStack = content?.techStack || [];
-
+  const aboutPillars = Array.isArray(studio.aboutPillars) && studio.aboutPillars.length
+    ? studio.aboutPillars
+    : ["Fast interfaces", "Stable backends", "Clean handoff"];
   const pageRef = React.useRef(null);
   const showcaseRef = React.useRef(null);
   const filterTimerRef = React.useRef(null);
@@ -269,6 +271,14 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
   }, []);
 
   React.useEffect(() => {
+    if (!visible || activeSection !== "about") return;
+    const timer = window.setTimeout(() => {
+      pageRef.current?.querySelector("#about-webdev")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [visible, activeSection]);
+
+  React.useEffect(() => {
     if (activeCategory && !categoryMap[activeCategory]) setActiveCategory(null);
   }, [activeCategory, categoryMap]);
 
@@ -295,7 +305,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
     if (!page || !visible) return;
 
     const els = Array.from(page.querySelectorAll(
-      ".service-card, .work-card, .page-stats > div, .page-lede, .section-head, .cta-foot"
+      ".service-card, .work-card, .page-stats > div, .page-lede, .section-head, .about-section"
     ));
 
     els.forEach((el, i) => {
@@ -572,11 +582,17 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content }) {
 
         <GitHubProjects />
 
-        <div className="cta-foot">
-          <h3>{studio.ctaTitlePre || "Need a site that "}<em>{studio.ctaTitleEm || "actually"}</em><br/>{studio.ctaTitleSecond || "performs?"}</h3>
+        <div className="about-section" id="about-webdev">
           <div>
-            <p>{studio.ctaText}</p>
-            <button className="cta-foot-btn" onClick={onContact}>{studio.ctaButton || "Start a build brief"} <WdArrowRight size={18} sw={2} /></button>
+            <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
+            <h2>{studio.aboutTitle || "A software studio for fast, usable products that keep working after launch."}</h2>
+          </div>
+          <div className="about-copy">
+            <p>{studio.aboutLead || "RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems."}</p>
+            <p>{studio.aboutBody || "We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves."}</p>
+            <div className="about-pillars">
+              {aboutPillars.map((item) => <span key={item}>{item}</span>)}
+            </div>
           </div>
         </div>
       </div>

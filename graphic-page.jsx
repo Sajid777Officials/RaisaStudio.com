@@ -124,7 +124,12 @@ function GraphicProjectModal({ project, category, onClose }) {
           )}
           {gallery.length > 0 && (
             <div className="project-gallery-strip">
-              {gallery.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`${project.title} gallery ${index + 1}`} />)}
+              {gallery.map((item, index) => {
+                const src = typeof item === "string" ? item : item.image_url || item.url || item.src || "";
+                const alt = typeof item === "string" ? `${project.title} gallery ${index + 1}` : (item.alt_text || item.alt || `${project.title} gallery ${index + 1}`);
+                if (!src) return null;
+                return <img key={`${src}-${index}`} src={src} alt={alt} />;
+              })}
             </div>
           )}
         </div>
@@ -133,11 +138,14 @@ function GraphicProjectModal({ project, category, onClose }) {
   );
 }
 
-function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
+function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSection }) {
   const studio = content?.studios?.graphic || {};
   const services = content?.services?.graphic || [];
   const works = (content?.works?.graphic || []).filter(work => work.is_published !== false);
   const projects = content?.projects?.graphic || [];
+  const aboutPillars = Array.isArray(studio.aboutPillars) && studio.aboutPillars.length
+    ? studio.aboutPillars
+    : ["Brand systems", "Print-ready craft", "Launch support"];
   const pageRef = React.useRef(null);
   const showcaseRef = React.useRef(null);
   const filterTimerRef = React.useRef(null);
@@ -181,6 +189,14 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
   }, []);
 
   React.useEffect(() => {
+    if (!visible || activeSection !== "about") return;
+    const timer = window.setTimeout(() => {
+      pageRef.current?.querySelector("#about")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [visible, activeSection]);
+
+  React.useEffect(() => {
     if (activeCategory && !categoryMap[activeCategory]) setActiveCategory(null);
   }, [activeCategory, categoryMap]);
 
@@ -207,7 +223,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
     if (!page || !visible) return;
 
     const els = Array.from(page.querySelectorAll(
-      ".service-card, .work-card, .page-stats > div, .page-lede, .section-head, .cta-foot"
+      ".service-card, .work-card, .page-stats > div, .page-lede, .section-head, .about-section"
     ));
 
     els.forEach((el, i) => {
@@ -441,11 +457,17 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content }) {
           </div>
         </div>
 
-        <div className="cta-foot">
-          <h3>{studio.ctaTitlePre || "Got a brand "}<em>{studio.ctaTitleEm || "worth"}</em><br/>{studio.ctaTitleSecond || "looking at?"}</h3>
+        <div className="about-section" id="about">
           <div>
-            <p>{studio.ctaText}</p>
-            <button className="cta-foot-btn" onClick={onContact}>{studio.ctaButton || "Start a graphic brief"} <GdArrowRight size={18} sw={2} /></button>
+            <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
+            <h2>{studio.aboutTitle || "A focused studio for brands that need to look intentional everywhere."}</h2>
+          </div>
+          <div className="about-copy">
+            <p>{studio.aboutLead || "RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands."}</p>
+            <p>{studio.aboutBody || "We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch."}</p>
+            <div className="about-pillars">
+              {aboutPillars.map((item) => <span key={item}>{item}</span>)}
+            </div>
           </div>
         </div>
       </div>

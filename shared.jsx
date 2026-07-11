@@ -1,7 +1,7 @@
 // Shared header + portfolio thumbnail generators
 const { ArrowRight, ArrowLeft, ArrowOut, Close, Lock } = window.PortfolioIcons;
 
-function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAdmin, site, expanded }) {
+function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAbout, onAdmin, site, expanded, activeSection }) {
   const brand = site?.brandName || "RAISA Studio";
   const mark = site?.logoMark || "V";
   const trademark = site?.trademark || "";
@@ -13,9 +13,9 @@ function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAdmin,
       </div>
       <nav className="nav-links">
         <a onClick={onHome} className={!expanded ? "active" : ""}>Home</a>
-        <a onClick={onGraphic} className={expanded === "graphic" ? "active" : ""}>Graphic Design</a>
-        <a onClick={onWebdev} className={expanded === "webdev" ? "active" : ""}>Software Dev</a>
-        <a onClick={onContact}>Contact</a>
+        <a onClick={onGraphic} className={expanded === "graphic" && activeSection !== "about" ? "active" : ""}>Graphic Design</a>
+        <a onClick={onWebdev} className={expanded === "webdev" && activeSection !== "about" ? "active" : ""}>Software Dev</a>
+        <a onClick={onAbout} className={activeSection === "about" ? "active" : ""}>About Us</a>
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {onAdmin && (

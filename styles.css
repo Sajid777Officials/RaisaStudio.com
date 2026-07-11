@@ -1483,47 +1483,65 @@ body {
 .page-webdev.visible .service-card:nth-child(9)  { animation-delay: 0.82s; }
 .page-webdev.visible .service-card:nth-child(10) { animation-delay: 0.88s; }
 
-/* CTA Footer */
-.cta-foot {
-  padding: 120px 80px 96px;
+/* About section */
+.about-section {
+  padding: 112px 80px 104px;
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 80px;
-  align-items: end;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 86px;
+  align-items: start;
+  background: var(--red);
+  color: white;
 }
-.page-graphic .cta-foot { background: var(--red); color: white; }
-.page-webdev .cta-foot { background: var(--navy-deep); color: white; border-top: 1px solid var(--navy-line); }
-.cta-foot h3 {
+.page-webdev .about-section {
+  background: var(--navy-deep);
+  border-top: 1px solid var(--navy-line);
+}
+.about-kicker {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-bottom: 28px;
+}
+.about-section h2 {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 88px;
-  line-height: 0.95;
-  letter-spacing: -0.04em;
+  font-size: 76px;
+  line-height: 0.98;
+  letter-spacing: 0;
+  margin: 0;
+  max-width: 880px;
+}
+.about-copy {
+  max-width: 560px;
+}
+.about-copy p {
+  font-size: 19px;
+  line-height: 1.55;
+  opacity: 0.86;
   margin: 0;
 }
-.cta-foot h3 em { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; }
-.cta-foot p {
-  font-size: 19px;
-  line-height: 1.5;
-  opacity: 0.85;
-  max-width: 440px;
-  margin: 0 0 24px 0;
+.about-copy p + p {
+  margin-top: 20px;
 }
-.cta-foot-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  background: white;
-  color: var(--ink);
-  border: 0;
-  padding: 22px 30px;
-  border-radius: 6px;
+.about-pillars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 34px;
+}
+.about-pillars span {
+  border: 1px solid rgba(255,255,255,0.38);
+  border-radius: 999px;
+  padding: 10px 14px;
   font-family: var(--font-display);
+  font-size: 14px;
   font-weight: 600;
-  font-size: 18px;
-  cursor: pointer;
+  line-height: 1;
 }
-.page-webdev .cta-foot-btn { background: var(--amber); color: var(--navy); }
 
 /* ============ Case Study Modal/Sheet ============ */
 .case-sheet {
@@ -2979,26 +2997,40 @@ body {
     padding-right: 22px;
   }
 
-  .cta-foot {
+  .about-section {
     display: block;
     padding: 58px 20px 62px;
   }
 
-  .cta-foot h3 {
-    font-size: 46px;
-    line-height: 1;
-    margin-bottom: 26px;
+  .about-kicker {
+    font-size: 11px;
+    margin-bottom: 18px;
   }
 
-  .cta-foot p {
-    font-size: 16px;
+  .about-section h2 {
+    font-size: 38px;
+    line-height: 1.05;
+    max-width: none;
   }
 
-  .cta-foot-btn {
-    width: 100%;
-    justify-content: space-between;
-    padding: 18px 20px;
+  .about-copy {
+    max-width: none;
+    margin-top: 28px;
+  }
+
+  .about-copy p {
     font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .about-pillars {
+    gap: 8px;
+    margin-top: 26px;
+  }
+
+  .about-pillars span {
+    font-size: 12px;
+    padding: 9px 11px;
   }
 
   .case-sheet {

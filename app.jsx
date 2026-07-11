@@ -152,11 +152,15 @@ function GlobalImageViewer() {
 // ─── Router helpers ───────────────────────────────────────────────────────────
 function parseHash() {
   const h = window.location.hash.replace(/^#\/?/, "").trim();
-  if (!h) return { view: null, caseId: null, admin: false };
-  if (h === "admin") return { view: null, caseId: null, admin: true };
-  const [view, caseId = null] = h.split("/");
-  if (view === "graphic" || view === "webdev") return { view, caseId, admin: false };
-  return { view: null, caseId: null, admin: false };
+  if (!h) return { view: null, caseId: null, section: null, admin: false };
+  if (h === "admin") return { view: null, caseId: null, section: null, admin: true };
+  if (h === "about") return { view: "graphic", caseId: null, section: "about", admin: false };
+  const [view, detail = null] = h.split("/");
+  if (view === "graphic" || view === "webdev") {
+    const section = detail === "about" ? "about" : null;
+    return { view, caseId: section ? null : detail, section, admin: false };
+  }
+  return { view: null, caseId: null, section: null, admin: false };
 }
 
 function go(path) {
@@ -179,7 +183,7 @@ function App() {
   const adminEnabled  = CFG.adminEnabled  !== false;
   const tweaksEnabled = CFG.tweaksEnabled !== false;
 
-  const { view: expanded, caseId, admin: adminOpen } = route;
+  const { view: expanded, caseId, section: activeSection, admin: adminOpen } = route;
 
   // Hydrate content from Supabase on mount; first render uses localStorage/defaults
   useEffect(() => {
@@ -238,8 +242,8 @@ function App() {
                  : expanded === "webdev"  ? " — Software Development"
                  : adminOpen              ? " — Admin"
                  : "";
-    document.title = base + suffix;
-  }, [expanded, adminOpen, content.site?.metaTitle]);
+    document.title = activeSection === "about" ? `${base} - About Us` : base + suffix;
+  }, [expanded, activeSection, adminOpen, content.site?.metaTitle]);
 
   useEffect(() => {
     if (!caseId) return;
@@ -259,6 +263,7 @@ function App() {
   const goHome        = () => go("");
   const goGraphic     = () => go("graphic");
   const goWebdev      = () => go("webdev");
+  const goAbout       = () => go(expanded === "webdev" ? "webdev/about" : expanded === "graphic" ? "graphic/about" : "about");
   const openCase      = (work) => {
     const side = work.side || expanded || "graphic";
     go(`${side}/${work.id}`);
@@ -296,9 +301,11 @@ function App() {
             onHome={goHome}
             onGraphic={goGraphic}
             onWebdev={goWebdev}
+            onAbout={goAbout}
             onContact={contact}
             onAdmin={adminEnabled ? openAdmin : null}
             expanded={expanded}
+            activeSection={activeSection}
           />
 
           <Hero
@@ -316,6 +323,7 @@ function App() {
               onBack={goHome}
               onOpenCase={openCase}
               onContact={contact}
+              activeSection={activeSection}
             />
           </PageSlide>
 
@@ -326,6 +334,7 @@ function App() {
               onBack={goHome}
               onOpenCase={openCase}
               onContact={contact}
+              activeSection={activeSection}
             />
           </PageSlide>
 
