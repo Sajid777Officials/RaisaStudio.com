@@ -941,6 +941,62 @@ body {
   cursor: zoom-out;
   touch-action: pan-y;
 }
+.global-image-viewer-zoom-controls {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  z-index: 12002;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 999px;
+  background: rgba(18,18,18,0.72);
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.24);
+  backdrop-filter: blur(14px);
+}
+.global-image-viewer-zoom-controls button,
+.global-image-viewer-zoom-controls output {
+  height: 40px;
+  min-width: 42px;
+  border: 0;
+  border-right: 1px solid rgba(255,255,255,0.14);
+  background: transparent;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.global-image-viewer-zoom-controls button {
+  cursor: pointer;
+}
+.global-image-viewer-zoom-controls button:hover:not(:disabled),
+.global-image-viewer-zoom-controls button:focus-visible {
+  background: rgba(255,255,255,0.14);
+}
+.global-image-viewer-zoom-controls button:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: -3px;
+}
+.global-image-viewer-zoom-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.34;
+}
+.global-image-viewer-zoom-controls output {
+  min-width: 62px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.global-image-viewer-zoom-controls .fit {
+  min-width: 52px;
+  border-right: 0;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .global-image-viewer-shell {
   width: min(1320px, 100%);
   height: calc(100dvh - 56px);
@@ -960,22 +1016,69 @@ body {
   gap: 12px;
 }
 .global-image-viewer-stage {
+  position: relative;
   min-width: 0;
   min-height: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
+  outline: none;
+  cursor: zoom-in;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.global-image-viewer-stage:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--amber);
+}
+.global-image-viewer-stage.is-zoomed {
+  cursor: grab;
+}
+.global-image-viewer-stage.is-dragging {
+  cursor: grabbing;
 }
 .global-image-viewer-figure img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: calc(100% - 2px);
+  max-height: calc(100% - 2px);
+  margin: auto;
   object-fit: contain;
   box-shadow: 0 24px 80px rgba(0,0,0,0.46);
   background: transparent;
+  pointer-events: none;
+  transform-origin: center center;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
   animation: gallery-image-in 220ms ease both;
+}
+.global-image-viewer-stage.is-dragging img {
+  transition: none;
+}
+.global-image-viewer-zoom-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 2;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 999px;
+  background: rgba(0,0,0,0.62);
+  color: rgba(255,255,255,0.82);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
 }
 .global-image-viewer-figure figcaption {
   width: 100%;
@@ -1108,8 +1211,8 @@ body {
 .global-image-viewer-nav.prev { left: max(18px, env(safe-area-inset-left)); }
 .global-image-viewer-nav.next { right: max(18px, env(safe-area-inset-right)); }
 @keyframes gallery-image-in {
-  from { opacity: 0; transform: scale(0.985); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .page-webdev .project-showcase {
   border-color: var(--navy-line);
@@ -3393,6 +3496,31 @@ body {
     right: 12px;
     width: 40px;
     height: 40px;
+  }
+
+  .global-image-viewer-zoom-controls {
+    top: 12px;
+    left: 12px;
+    min-height: 40px;
+  }
+
+  .global-image-viewer-zoom-controls button,
+  .global-image-viewer-zoom-controls output {
+    height: 38px;
+    min-width: 38px;
+  }
+
+  .global-image-viewer-zoom-controls output {
+    min-width: 54px;
+  }
+
+  .global-image-viewer-zoom-controls .fit {
+    min-width: 46px;
+  }
+
+  .global-image-viewer-zoom-hint {
+    bottom: 8px;
+    font-size: 8px;
   }
 
   .global-image-viewer-nav {

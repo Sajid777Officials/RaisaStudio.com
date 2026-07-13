@@ -129,15 +129,71 @@ function getFullscreenGallery(clickedImage) {
 
 function GlobalImageViewer() {
   const [gallery, setGallery] = useState(null);
-  const swipeStart = useRef(null);
+  const [viewport, setViewport] = useState({ scale: 1, x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const viewportRef = useRef({ scale: 1, x: 0, y: 0 });
+  const stageRef = useRef(null);
+  const imageRef = useRef(null);
+  const pointersRef = useRef(new Map());
+  const gestureRef = useRef(null);
+  const ignoreClickRef = useRef(false);
   const thumbnailRefs = useRef([]);
   const CloseIcon = window.PortfolioIcons?.Close;
   const ArrowLeftIcon = window.PortfolioIcons?.ArrowLeft;
   const ArrowRightIcon = window.PortfolioIcons?.ArrowRight;
   const image = gallery?.images?.[gallery.index] || null;
   const imageCount = gallery?.images?.length || 0;
+  const isZoomed = viewport.scale > 1.01;
 
-  const closeGallery = () => setGallery(null);
+  const commitViewport = (next) => {
+    viewportRef.current = next;
+    setViewport(next);
+  };
+
+  const clampViewport = (next) => {
+    if (next.scale <= 1.01) return { scale: 1, x: 0, y: 0 };
+    const stage = stageRef.current;
+    const imageElement = imageRef.current;
+    if (!stage || !imageElement) return next;
+    const maxX = Math.max(0, (imageElement.offsetWidth * next.scale - stage.clientWidth) / 2);
+    const maxY = Math.max(0, (imageElement.offsetHeight * next.scale - stage.clientHeight) / 2);
+    return {
+      scale: next.scale,
+      x: Math.max(-maxX, Math.min(maxX, next.x)),
+      y: Math.max(-maxY, Math.min(maxY, next.y)),
+    };
+  };
+
+  const resetZoom = () => {
+    pointersRef.current.clear();
+    gestureRef.current = null;
+    setIsDragging(false);
+    commitViewport({ scale: 1, x: 0, y: 0 });
+  };
+
+  const zoomAt = (requestedScale, clientX, clientY) => {
+    const current = viewportRef.current;
+    const nextScale = Math.max(1, Math.min(4, requestedScale));
+    if (nextScale <= 1.01) {
+      resetZoom();
+      return;
+    }
+
+    const rect = stageRef.current?.getBoundingClientRect();
+    const pointX = rect && Number.isFinite(clientX) ? clientX - (rect.left + rect.width / 2) : 0;
+    const pointY = rect && Number.isFinite(clientY) ? clientY - (rect.top + rect.height / 2) : 0;
+    const ratio = nextScale / current.scale;
+    commitViewport(clampViewport({
+      scale: nextScale,
+      x: pointX - (pointX - current.x) * ratio,
+      y: pointY - (pointY - current.y) * ratio,
+    }));
+  };
+
+  const closeGallery = () => {
+    resetZoom();
+    setGallery(null);
+  };
   const moveGallery = (step) => {
     setGallery((current) => {
       if (!current || current.images.length < 2) return current;
@@ -146,6 +202,136 @@ function GlobalImageViewer() {
         index: (current.index + step + current.images.length) % current.images.length,
       };
     });
+  };
+
+  const stagePoint = (event) => ({ x: event.clientX, y: event.clientY });
+  const pointDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const pointMidpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+  const beginStagePointer = (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    pointersRef.current.set(event.pointerId, stagePoint(event));
+    const points = Array.from(pointersRef.current.values());
+
+    if (points.length === 1) {
+      gestureRef.current = {
+        type: "single",
+        startPoint: points[0],
+        startViewport: { ...viewportRef.current },
+      };
+      setIsDragging(viewportRef.current.scale > 1.01);
+      return;
+    }
+
+    if (points.length === 2) {
+      gestureRef.current = {
+        type: "pinch",
+        startDistance: Math.max(1, pointDistance(points[0], points[1])),
+        startMidpoint: pointMidpoint(points[0], points[1]),
+        startViewport: { ...viewportRef.current },
+      };
+      ignoreClickRef.current = true;
+      setIsDragging(true);
+    }
+  };
+
+  const moveStagePointer = (event) => {
+    if (!pointersRef.current.has(event.pointerId)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    pointersRef.current.set(event.pointerId, stagePoint(event));
+    const points = Array.from(pointersRef.current.values());
+    const gesture = gestureRef.current;
+
+    if (points.length >= 2 && gesture?.type === "pinch") {
+      const distance = Math.max(1, pointDistance(points[0], points[1]));
+      const midpoint = pointMidpoint(points[0], points[1]);
+      const nextScale = Math.max(1, Math.min(4, gesture.startViewport.scale * (distance / gesture.startDistance)));
+      const rect = stageRef.current?.getBoundingClientRect();
+      const centerX = rect ? rect.left + rect.width / 2 : 0;
+      const centerY = rect ? rect.top + rect.height / 2 : 0;
+      const startPointX = gesture.startMidpoint.x - centerX;
+      const startPointY = gesture.startMidpoint.y - centerY;
+      const currentPointX = midpoint.x - centerX;
+      const currentPointY = midpoint.y - centerY;
+      const anchorX = (startPointX - gesture.startViewport.x) / gesture.startViewport.scale;
+      const anchorY = (startPointY - gesture.startViewport.y) / gesture.startViewport.scale;
+      commitViewport(clampViewport({
+        scale: nextScale,
+        x: currentPointX - anchorX * nextScale,
+        y: currentPointY - anchorY * nextScale,
+      }));
+      ignoreClickRef.current = true;
+      return;
+    }
+
+    if (points.length === 1 && gesture?.type === "single") {
+      const dx = points[0].x - gesture.startPoint.x;
+      const dy = points[0].y - gesture.startPoint.y;
+      if (Math.hypot(dx, dy) > 4) ignoreClickRef.current = true;
+      if (gesture.startViewport.scale > 1.01) {
+        commitViewport(clampViewport({
+          ...gesture.startViewport,
+          x: gesture.startViewport.x + dx,
+          y: gesture.startViewport.y + dy,
+        }));
+      }
+    }
+  };
+
+  const endStagePointer = (event, cancelled = false) => {
+    if (!pointersRef.current.has(event.pointerId)) return;
+    event.stopPropagation();
+    const point = pointersRef.current.get(event.pointerId);
+    const gesture = gestureRef.current;
+    const pointerCount = pointersRef.current.size;
+
+    if (!cancelled && pointerCount === 1 && gesture?.type === "single") {
+      const dx = point.x - gesture.startPoint.x;
+      const dy = point.y - gesture.startPoint.y;
+      if (viewportRef.current.scale <= 1.01 && imageCount > 1 && Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
+        ignoreClickRef.current = true;
+        moveGallery(dx > 0 ? -1 : 1);
+      }
+    }
+
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size === 1 && gesture?.type === "pinch") {
+      const remainingPoint = Array.from(pointersRef.current.values())[0];
+      gestureRef.current = {
+        type: "single",
+        startPoint: remainingPoint,
+        startViewport: { ...viewportRef.current },
+      };
+    } else if (pointersRef.current.size === 0) {
+      gestureRef.current = null;
+      setIsDragging(false);
+    }
+
+    if (ignoreClickRef.current) {
+      setTimeout(() => { ignoreClickRef.current = false; }, 0);
+    }
+  };
+
+  const toggleTapZoom = (event) => {
+    event.stopPropagation();
+    if (ignoreClickRef.current) {
+      ignoreClickRef.current = false;
+      return;
+    }
+    if (viewportRef.current.scale > 1.01) resetZoom();
+    else zoomAt(2.5, event.clientX, event.clientY);
+  };
+
+  const changeZoomFromCenter = (step) => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    zoomAt(
+      viewportRef.current.scale + step,
+      rect ? rect.left + rect.width / 2 : undefined,
+      rect ? rect.top + rect.height / 2 : undefined
+    );
   };
 
   useEffect(() => {
@@ -171,7 +357,7 @@ function GlobalImageViewer() {
     document.body.style.overflow = "hidden";
 
     const onKey = (event) => {
-      if (!["Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      if (!["Escape", "ArrowLeft", "ArrowRight", "Home", "End", "+", "=", "-", "0"].includes(event.key)) return;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
@@ -180,6 +366,9 @@ function GlobalImageViewer() {
       if (event.key === "ArrowRight") moveGallery(1);
       if (event.key === "Home") setGallery((current) => current ? { ...current, index: 0 } : current);
       if (event.key === "End") setGallery((current) => current ? { ...current, index: current.images.length - 1 } : current);
+      if (event.key === "+" || event.key === "=") changeZoomFromCenter(0.5);
+      if (event.key === "-") changeZoomFromCenter(-0.5);
+      if (event.key === "0") resetZoom();
     };
 
     window.addEventListener("keydown", onKey, true);
@@ -194,6 +383,10 @@ function GlobalImageViewer() {
     thumbnailRefs.current[gallery.index]?.scrollIntoView?.({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [gallery?.index, imageCount]);
 
+  useEffect(() => {
+    resetZoom();
+  }, [gallery?.index, image?.src]);
+
   if (!image) return null;
 
   return (
@@ -203,17 +396,16 @@ function GlobalImageViewer() {
       aria-modal="true"
       aria-label="Project image gallery"
       onClick={closeGallery}
-      onPointerDown={(event) => { swipeStart.current = event.clientX; }}
-      onPointerUp={(event) => {
-        if (swipeStart.current == null || imageCount < 2) return;
-        const distance = event.clientX - swipeStart.current;
-        swipeStart.current = null;
-        if (Math.abs(distance) > 48) moveGallery(distance > 0 ? -1 : 1);
-      }}
     >
       <button type="button" className="global-image-viewer-close" onClick={closeGallery} aria-label="Close image gallery">
         {CloseIcon ? <CloseIcon size={18} sw={2.2} /> : "x"}
       </button>
+      <div className="global-image-viewer-zoom-controls" onClick={(event) => event.stopPropagation()} aria-label="Image zoom controls">
+        <button type="button" onClick={() => changeZoomFromCenter(-0.5)} disabled={!isZoomed} aria-label="Zoom out">−</button>
+        <output aria-live="polite">{Math.round(viewport.scale * 100)}%</output>
+        <button type="button" onClick={() => changeZoomFromCenter(0.5)} disabled={viewport.scale >= 4} aria-label="Zoom in">+</button>
+        <button type="button" className="fit" onClick={resetZoom} disabled={!isZoomed}>Fit</button>
+      </div>
       {imageCount > 1 && (
         <button type="button" className="global-image-viewer-nav prev" onClick={(event) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Previous image">
           {ArrowLeftIcon ? <ArrowLeftIcon size={22} sw={2} /> : "Prev"}
@@ -221,8 +413,40 @@ function GlobalImageViewer() {
       )}
       <div className="global-image-viewer-shell" onClick={(event) => event.stopPropagation()}>
         <figure className="global-image-viewer-figure">
-          <div className="global-image-viewer-stage">
-            <img key={image.src} src={image.src} alt={image.alt} />
+          <div
+            ref={stageRef}
+            className={`global-image-viewer-stage${isZoomed ? " is-zoomed" : ""}${isDragging ? " is-dragging" : ""}`}
+            role="button"
+            tabIndex="0"
+            aria-label={isZoomed ? "Zoomed image. Drag to pan or tap to fit." : "Full image. Tap to zoom."}
+            onClick={toggleTapZoom}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              if (viewportRef.current.scale > 1.01) resetZoom();
+              else changeZoomFromCenter(1.5);
+            }}
+            onWheel={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              zoomAt(viewportRef.current.scale * Math.exp(-event.deltaY * 0.0015), event.clientX, event.clientY);
+            }}
+            onPointerDown={beginStagePointer}
+            onPointerMove={moveStagePointer}
+            onPointerUp={(event) => endStagePointer(event)}
+            onPointerCancel={(event) => endStagePointer(event, true)}
+          >
+            <img
+              ref={imageRef}
+              key={image.src}
+              src={image.src}
+              alt={image.alt}
+              draggable="false"
+              style={{ transform: `translate3d(${viewport.x}px, ${viewport.y}px, 0) scale(${viewport.scale})` }}
+            />
+            <span className="global-image-viewer-zoom-hint">
+              {isZoomed ? "Drag to explore · tap to fit" : "Tap image to zoom · pinch or scroll"}
+            </span>
           </div>
           <figcaption>
             <span>{String(gallery.index + 1).padStart(2, "0")} / {String(imageCount).padStart(2, "0")}</span>
