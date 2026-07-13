@@ -78,10 +78,14 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 function getFullscreenImage(target) {
-  const img = target?.closest?.("img");
+  const galleryTrigger = target?.closest?.("[data-gallery-trigger]");
+  const img = target?.closest?.("img") || galleryTrigger?.querySelector?.("img");
   if (!img) return null;
   if (img.closest(".global-image-viewer, .admin-overlay, .admin-shell, .twk-panel, .loading-screen, .nav")) return null;
   if (img.closest(".svc-icon") || img.classList.contains("svc-icon-img")) return null;
+  // These images live inside navigation controls. Let the card/button open its
+  // project first; the gallery is available from inside the project view.
+  if (img.closest(".category-project-image, .work-card, .case-related-card")) return null;
 
   const rect = img.getBoundingClientRect();
   if (rect.width < 72 && rect.height < 72) return null;
@@ -90,12 +94,59 @@ function getFullscreenImage(target) {
   if (!src || src.startsWith("data:image/svg+xml")) return null;
 
   const alt = img.getAttribute("alt") || img.closest("[aria-label]")?.getAttribute("aria-label") || "Project image";
-  return { src, alt };
+  const caption = img.dataset.galleryCaption || img.closest("figure")?.querySelector("figcaption")?.textContent?.trim() || alt;
+  return { element: img, src, alt, caption };
+}
+
+function getFullscreenGallery(clickedImage) {
+  const fallback = {
+    src: clickedImage.src,
+    alt: clickedImage.alt,
+    caption: clickedImage.caption,
+  };
+  const galleryId = clickedImage.element?.dataset?.imageGallery;
+  if (!galleryId) return { images: [fallback], index: 0 };
+
+  const seen = new Set();
+  const grouped = Array.from(document.querySelectorAll("img[data-image-gallery]"))
+    .filter((img) => img.dataset.imageGallery === galleryId)
+    .map((img) => getFullscreenImage(img))
+    .filter(Boolean)
+    .filter((item) => {
+      const key = `${item.src}::${item.alt}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+  if (!grouped.length) return { images: [fallback], index: 0 };
+  const clickedIndex = grouped.findIndex((item) => item.element === clickedImage.element);
+  return {
+    images: grouped.map(({ src, alt, caption }) => ({ src, alt, caption })),
+    index: clickedIndex >= 0 ? clickedIndex : 0,
+  };
 }
 
 function GlobalImageViewer() {
-  const [image, setImage] = useState(null);
+  const [gallery, setGallery] = useState(null);
+  const swipeStart = useRef(null);
+  const thumbnailRefs = useRef([]);
   const CloseIcon = window.PortfolioIcons?.Close;
+  const ArrowLeftIcon = window.PortfolioIcons?.ArrowLeft;
+  const ArrowRightIcon = window.PortfolioIcons?.ArrowRight;
+  const image = gallery?.images?.[gallery.index] || null;
+  const imageCount = gallery?.images?.length || 0;
+
+  const closeGallery = () => setGallery(null);
+  const moveGallery = (step) => {
+    setGallery((current) => {
+      if (!current || current.images.length < 2) return current;
+      return {
+        ...current,
+        index: (current.index + step + current.images.length) % current.images.length,
+      };
+    });
+  };
 
   useEffect(() => {
     const openFromClick = (event) => {
@@ -106,7 +157,7 @@ function GlobalImageViewer() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
-      setImage(imageData);
+      setGallery(getFullscreenGallery(imageData));
     };
 
     document.addEventListener("click", openFromClick, true);
@@ -114,17 +165,21 @@ function GlobalImageViewer() {
   }, []);
 
   useEffect(() => {
-    if (!image) return undefined;
+    if (!gallery) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const onKey = (event) => {
-      if (event.key !== "Escape") return;
+      if (!["Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
-      setImage(null);
+      if (event.key === "Escape") closeGallery();
+      if (event.key === "ArrowLeft") moveGallery(-1);
+      if (event.key === "ArrowRight") moveGallery(1);
+      if (event.key === "Home") setGallery((current) => current ? { ...current, index: 0 } : current);
+      if (event.key === "End") setGallery((current) => current ? { ...current, index: current.images.length - 1 } : current);
     };
 
     window.addEventListener("keydown", onKey, true);
@@ -132,19 +187,73 @@ function GlobalImageViewer() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKey, true);
     };
-  }, [image]);
+  }, [Boolean(gallery)]);
+
+  useEffect(() => {
+    if (!gallery || imageCount < 2) return;
+    thumbnailRefs.current[gallery.index]?.scrollIntoView?.({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [gallery?.index, imageCount]);
 
   if (!image) return null;
 
   return (
-    <div className="global-image-viewer" role="dialog" aria-modal="true" aria-label="Fullscreen image preview" onClick={() => setImage(null)}>
-      <button type="button" className="global-image-viewer-close" onClick={() => setImage(null)} aria-label="Close fullscreen image">
+    <div
+      className="global-image-viewer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Project image gallery"
+      onClick={closeGallery}
+      onPointerDown={(event) => { swipeStart.current = event.clientX; }}
+      onPointerUp={(event) => {
+        if (swipeStart.current == null || imageCount < 2) return;
+        const distance = event.clientX - swipeStart.current;
+        swipeStart.current = null;
+        if (Math.abs(distance) > 48) moveGallery(distance > 0 ? -1 : 1);
+      }}
+    >
+      <button type="button" className="global-image-viewer-close" onClick={closeGallery} aria-label="Close image gallery">
         {CloseIcon ? <CloseIcon size={18} sw={2.2} /> : "x"}
       </button>
-      <figure className="global-image-viewer-figure" onClick={(event) => event.stopPropagation()}>
-        <img src={image.src} alt={image.alt} />
-        {image.alt && <figcaption>{image.alt}</figcaption>}
-      </figure>
+      {imageCount > 1 && (
+        <button type="button" className="global-image-viewer-nav prev" onClick={(event) => { event.stopPropagation(); moveGallery(-1); }} aria-label="Previous image">
+          {ArrowLeftIcon ? <ArrowLeftIcon size={22} sw={2} /> : "Prev"}
+        </button>
+      )}
+      <div className="global-image-viewer-shell" onClick={(event) => event.stopPropagation()}>
+        <figure className="global-image-viewer-figure">
+          <div className="global-image-viewer-stage">
+            <img key={image.src} src={image.src} alt={image.alt} />
+          </div>
+          <figcaption>
+            <span>{String(gallery.index + 1).padStart(2, "0")} / {String(imageCount).padStart(2, "0")}</span>
+            <strong>{image.caption || image.alt}</strong>
+          </figcaption>
+        </figure>
+        {imageCount > 1 && (
+          <div className="global-image-viewer-thumbnails" role="tablist" aria-label="Choose project image">
+            {gallery.images.map((item, index) => (
+              <button
+                type="button"
+                role="tab"
+                key={`${item.src}-${index}`}
+                ref={(node) => { thumbnailRefs.current[index] = node; }}
+                className={index === gallery.index ? "active" : ""}
+                aria-selected={index === gallery.index}
+                aria-label={`View image ${index + 1}: ${item.alt}`}
+                onClick={() => setGallery((current) => current ? { ...current, index } : current)}
+              >
+                <img src={item.src} alt="" />
+                <span>{String(index + 1).padStart(2, "0")}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {imageCount > 1 && (
+        <button type="button" className="global-image-viewer-nav next" onClick={(event) => { event.stopPropagation(); moveGallery(1); }} aria-label="Next image">
+          {ArrowRightIcon ? <ArrowRightIcon size={22} sw={2} /> : "Next"}
+        </button>
+      )}
     </div>
   );
 }

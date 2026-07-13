@@ -66,7 +66,7 @@ function gdFormatDate(value) {
   return date.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
 
-function GraphicProjectThumb({ project, category }) {
+function GraphicProjectThumb({ project, category, galleryId }) {
   const image = project.image_url || project.image;
   const thumbName = project.thumb || GD_CATEGORY_THUMBS[category?.icon] || "Brand";
   const Thumb = GdThumbs[thumbName] || GdThumbs.Brand;
@@ -75,7 +75,7 @@ function GraphicProjectThumb({ project, category }) {
   return (
     <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")}>
       {image
-        ? <img src={image} alt={project.title} />
+        ? <img src={image} alt={project.cover_alt || project.title} data-image-gallery={galleryId || undefined} data-gallery-caption={project.short_description || project.title} />
         : <Thumb palette={palette} title={project.title} num={project.num || String(project.sort_order || 1).padStart(2, "0")} />
       }
     </div>
@@ -94,6 +94,7 @@ function GraphicProjectModal({ project, category, onClose }) {
   const projectDate = gdFormatDate(project.project_date);
   const categoryName = category?.name || "Project";
   const gallery = project.gallery_images || [];
+  const galleryId = `graphic-project-${project.id || project.slug}`;
 
   return (
     <div className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="project-lightbox-title" onClick={onClose}>
@@ -102,7 +103,7 @@ function GraphicProjectModal({ project, category, onClose }) {
           <GdClose size={16} sw={2.2} />
         </button>
         <div className="project-lightbox-media">
-          <GraphicProjectThumb project={project} category={category} />
+          <GraphicProjectThumb project={project} category={category} galleryId={galleryId} />
         </div>
         <div className="project-lightbox-body">
           <div className="project-kicker">
@@ -128,7 +129,12 @@ function GraphicProjectModal({ project, category, onClose }) {
                 const src = typeof item === "string" ? item : item.image_url || item.url || item.src || "";
                 const alt = typeof item === "string" ? `${project.title} gallery ${index + 1}` : (item.alt_text || item.alt || `${project.title} gallery ${index + 1}`);
                 if (!src) return null;
-                return <img key={`${src}-${index}`} src={src} alt={alt} />;
+                const caption = typeof item === "string" ? alt : (item.caption || alt);
+                return (
+                  <button type="button" key={`${src}-${index}`} data-gallery-trigger aria-label={`Open ${alt}`}>
+                    <img src={src} alt={alt} data-image-gallery={galleryId} data-gallery-caption={caption} />
+                  </button>
+                );
               })}
             </div>
           )}

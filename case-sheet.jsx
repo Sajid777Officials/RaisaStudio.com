@@ -1,5 +1,5 @@
 // Case study sheet — slides up over the page
-const { ArrowLeft: CsArrowLeft, Close: CsClose } = window.PortfolioIcons;
+const { Close: CsClose } = window.PortfolioIcons;
 const { thumbs: CsThumbs, GRAPHIC_PALETTES: CS_GD_PAL, WEBDEV_PALETTES: CS_WD_PAL } = window.PortfolioShared;
 
 const CASE_DATA = {
@@ -280,7 +280,6 @@ function CaseRelatedThumb({ work, side }) {
 }
 
 function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
-  const [lightboxIndex, setLightboxIndex] = React.useState(null);
   const [loadedCaseId, setLoadedCaseId] = React.useState(null);
   const baseData = caseId ? (content?.cases?.[caseId] || CASE_DATA[caseId]) : null;
   const linkedWork = findCaseWork(caseId, content, activeSide, baseData?.side);
@@ -293,11 +292,9 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
 
   React.useEffect(() => {
     if (!caseId) {
-      setLightboxIndex(null);
       setLoadedCaseId(null);
       return undefined;
     }
-    setLightboxIndex(null);
     setLoadedCaseId(null);
     const timer = setTimeout(() => setLoadedCaseId(caseId), 180);
     return () => clearTimeout(timer);
@@ -305,11 +302,7 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
 
   const heroImage = data?.cover_image_url || data?.image || linkedWork?.cover_image_url || linkedWork?.image || "";
   const galleryImages = normalizeCaseImages(data?.gallery_images || linkedWork?.gallery_images || [], linkedWork?.id || caseId, data?.title || "Project");
-  const lightboxImages = [
-    ...(heroImage && data ? [{ id: "cover", image_url: heroImage, caption: data.short_description || data.eyebrow || "", alt_text: data.cover_alt || data.title }] : []),
-    ...galleryImages,
-  ];
-  const currentLightbox = lightboxIndex == null ? null : lightboxImages[lightboxIndex];
+  const galleryId = `case-${caseId}`;
   const projectCategory = linkedWork?.cat || data?.category || data?.eyebrow?.replace(/^Case\s*[·-]\s*/i, "") || "Project";
   const projectYear = data?.year || linkedWork?.year || caseInfoValue(data?.side_info, "Year");
   const clientName = data?.client_name || linkedWork?.client_name || caseInfoValue(data?.side_info, "Client");
@@ -322,17 +315,6 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
   const relatedWorks = sideWorks
     .filter(work => work.id !== linkedWork?.id && (work.category_id && linkedWork?.category_id ? work.category_id === linkedWork.category_id : work.cat === linkedWork?.cat))
     .slice(0, 3);
-
-  React.useEffect(() => {
-    if (!currentLightbox) return undefined;
-    const onKey = (event) => {
-      if (event.key === "Escape") setLightboxIndex(null);
-      if (event.key === "ArrowLeft") setLightboxIndex(index => (index == null ? index : (index - 1 + lightboxImages.length) % lightboxImages.length));
-      if (event.key === "ArrowRight") setLightboxIndex(index => (index == null ? index : (index + 1) % lightboxImages.length));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [currentLightbox, lightboxImages.length]);
 
   const openWork = (work) => {
     if (!work || !onNavigate) return;
@@ -360,8 +342,8 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
         {loadedCaseId !== caseId ? (
           <div className="case-hero-skeleton" aria-label="Loading case study"></div>
         ) : heroImage ? (
-          <button type="button" className="case-hero-img has-upload clickable" onClick={() => setLightboxIndex(0)} aria-label={`Open ${data.title} cover image`}>
-            <img src={heroImage} alt={data.cover_alt || data.title} />
+          <button type="button" className="case-hero-img has-upload clickable" data-gallery-trigger aria-label={`Open ${data.title} image gallery`}>
+            <img src={heroImage} alt={data.cover_alt || data.title} data-image-gallery={galleryId} data-gallery-caption={shortDescription || data.eyebrow || data.title} />
           </button>
         ) : (
           <div className="case-hero-img">
@@ -420,9 +402,16 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
                   key={image.id}
                   className={"case-gallery-item" + (index % 3 === 0 ? " wide" : "")}
                   style={{ "--case-reveal-delay": `${index * 70}ms` }}
-                  onClick={() => setLightboxIndex((heroImage ? 1 : 0) + index)}
+                  data-gallery-trigger
+                  aria-label={`Open ${data.title} gallery image ${index + 1}`}
                 >
-                  <img src={image.image_url} alt={image.alt_text || `${data.title} gallery image ${index + 1}`} loading="lazy" />
+                  <img
+                    src={image.image_url}
+                    alt={image.alt_text || `${data.title} gallery image ${index + 1}`}
+                    loading="lazy"
+                    data-image-gallery={galleryId}
+                    data-gallery-caption={image.caption || image.alt_text || `${data.title} gallery image ${index + 1}`}
+                  />
                   {image.caption && <span>{image.caption}</span>}
                 </button>
               ))}
@@ -464,42 +453,6 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
         )}
       </div>
 
-      {currentLightbox && (
-        <div className="case-lightbox" role="dialog" aria-modal="true" aria-label={`${data.title} image preview`} onClick={() => setLightboxIndex(null)}>
-          <button type="button" className="case-lightbox-close" onClick={() => setLightboxIndex(null)} aria-label="Close image preview">
-            <CsClose size={14} sw={2} />
-          </button>
-          <button
-            type="button"
-            className="case-lightbox-arrow prev"
-            onClick={(event) => {
-              event.stopPropagation();
-              setLightboxIndex(index => (index - 1 + lightboxImages.length) % lightboxImages.length);
-            }}
-            aria-label="Previous image"
-          >
-            <CsArrowLeft size={22} sw={2} />
-          </button>
-          <figure className="case-lightbox-figure" onClick={(event) => event.stopPropagation()}>
-            <img src={currentLightbox.image_url} alt={currentLightbox.alt_text || data.title} />
-            <figcaption>
-              <span>{lightboxIndex + 1} / {lightboxImages.length}</span>
-              {currentLightbox.caption && <strong>{currentLightbox.caption}</strong>}
-            </figcaption>
-          </figure>
-          <button
-            type="button"
-            className="case-lightbox-arrow next"
-            onClick={(event) => {
-              event.stopPropagation();
-              setLightboxIndex(index => (index + 1) % lightboxImages.length);
-            }}
-            aria-label="Next image"
-          >
-            <span>Next</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

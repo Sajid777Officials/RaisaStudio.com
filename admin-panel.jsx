@@ -378,6 +378,9 @@ function adminValidateContent(content) {
       if (!String(project.title || "").trim()) errors.push(`${label}: title is required.`);
       if (!String(project.category_id || "").trim()) errors.push(`${project.title || label}: service category is required.`);
       if (project.category_id && validCategories.size && !validCategories.has(project.category_id)) errors.push(`${project.title || label}: service category does not match an active service.`);
+      (project.gallery_images || []).forEach((image, imageIndex) => {
+        if (!String(image.image_url || "").trim()) errors.push(`${project.title || label}: gallery image ${imageIndex + 1} needs an image.`);
+      });
     });
 
     const seenSlugs = new Set();
@@ -504,22 +507,24 @@ function AdminPaletteSelect({ label, value, onChange, side = "graphic" }) {
   );
 }
 
-function AdminRowActions({ index, length, onMove, onRemove }) {
+function AdminRowActions({ index, length, onMove, onRemove, upLabel = "Up", downLabel = "Down" }) {
   return (
     <div className="admin-row-actions">
-      <button type="button" className="admin-mini-button" disabled={index === 0} onClick={() => onMove(index, -1)}>Up</button>
-      <button type="button" className="admin-mini-button" disabled={index === length - 1} onClick={() => onMove(index, 1)}>Down</button>
+      <button type="button" className="admin-mini-button" disabled={index === 0} onClick={() => onMove(index, -1)}>{upLabel}</button>
+      <button type="button" className="admin-mini-button" disabled={index === length - 1} onClick={() => onMove(index, 1)}>{downLabel}</button>
       <button type="button" className="admin-mini-button danger" onClick={() => onRemove(index)}>Remove</button>
     </div>
   );
 }
 
-function AdminGalleryEditor({ images = [], projectId, onChange }) {
+function AdminGalleryEditor({ images = [], projectId, coverImage = "", coverAlt = "", onChange }) {
   const normalized = Array.isArray(images) ? images : [];
+  const validImageCount = normalized.filter((image) => String(image.image_url || "").trim()).length;
+  const totalImageCount = validImageCount + (coverImage ? 1 : 0);
   const updateImage = (index, key, value) => {
     const next = normalized.map((image, imageIndex) => ({
       ...image,
-      sort_order: image.sort_order || imageIndex + 1,
+      sort_order: image.sort_order ?? imageIndex + 1,
     }));
     next[index] = { ...next[index], [key]: value, updated_at: new Date().toISOString() };
     onChange(next);
@@ -551,23 +556,49 @@ function AdminGalleryEditor({ images = [], projectId, onChange }) {
   return (
     <div className="admin-gallery-editor">
       <div className="admin-subsection-head">
-        <h4>Project gallery</h4>
-        <button type="button" className="admin-mini-button" onClick={addImage}>Add gallery image</button>
+        <div>
+          <h4>Image viewer &amp; thumbnail order</h4>
+          <p className="admin-gallery-help">The cover opens first. Additional images follow in the order shown below.</p>
+        </div>
+        <div className="admin-gallery-heading-actions">
+          <span className="admin-gallery-count">{totalImageCount} {totalImageCount === 1 ? "image" : "images"}</span>
+          <button type="button" className="admin-mini-button" onClick={addImage}>Add image</button>
+        </div>
       </div>
+
+      {coverImage && (
+        <div className="admin-gallery-cover-card">
+          <span className="admin-gallery-position">01</span>
+          <img src={coverImage} alt={coverAlt || "Cover preview"} />
+          <div>
+            <strong>Cover image</strong>
+            <span>Always appears first in the fullscreen viewer and thumbnail rail.</span>
+          </div>
+        </div>
+      )}
+
       {normalized.length === 0 ? (
-        <div className="admin-gallery-empty">No gallery images yet. Add images here to show them inside the case study.</div>
+        <div className="admin-gallery-empty">
+          No additional images yet. Add images to create the thumbnail rail below the main preview.
+        </div>
       ) : (
         <div className="admin-gallery-list">
-          {normalized.map((image, index) => (
+          {normalized.map((image, index) => {
+            const viewerPosition = index + (coverImage ? 2 : 1);
+            return (
             <div className="admin-gallery-card" key={image.id || index}>
-              <AdminImageUpload label={`Gallery image ${index + 1}`} value={image.image_url || ""} onChange={(value) => updateImage(index, "image_url", value)} />
-              <div className="admin-grid two">
-                <AdminText label="Caption" value={image.caption || ""} onChange={(value) => updateImage(index, "caption", value)} />
-                <AdminText label="Alt text" value={image.alt_text || ""} onChange={(value) => updateImage(index, "alt_text", value)} />
+              <div className="admin-gallery-card-head">
+                <span className="admin-gallery-position">{String(viewerPosition).padStart(2, "0")}</span>
+                <strong>Viewer image {String(viewerPosition).padStart(2, "0")}</strong>
               </div>
-              <AdminRowActions index={index} length={normalized.length} onMove={moveImage} onRemove={removeImage} />
+              <AdminImageUpload label="Image file" value={image.image_url || ""} onChange={(value) => updateImage(index, "image_url", value)} />
+              <div className="admin-grid two">
+                <AdminText label="Caption" placeholder="Optional text shown below the image" value={image.caption || ""} onChange={(value) => updateImage(index, "caption", value)} />
+                <AdminText label="Alt text" placeholder="Describe the image for accessibility" value={image.alt_text || ""} onChange={(value) => updateImage(index, "alt_text", value)} />
+              </div>
+              <AdminRowActions index={index} length={normalized.length} onMove={moveImage} onRemove={removeImage} upLabel="Earlier" downLabel="Later" />
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>
@@ -846,13 +877,16 @@ function AdminStudioEditor({
               <AdminNumber label="Sort order" value={project.sort_order ?? index + 1} min={1} max={999} onChange={(value) => updateCategoryProject(side, index, "sort_order", value)} />
               <AdminSelect label="Thumbnail" value={project.thumb || (side === "webdev" ? "WebApp" : "Brand")} options={thumbOptions} onChange={(value) => updateCategoryProject(side, index, "thumb", value)} />
               <AdminPaletteSelect label="Palette" value={project.pal ?? 0} side={side} onChange={(value) => updateCategoryProject(side, index, "pal", value)} />
-              <AdminImageUpload label="Main image shown in service project card" value={project.image_url || project.image || ""} onChange={(value) => {
+              <AdminText label="Cover alt text" value={project.cover_alt || ""} placeholder={project.title || "Describe the cover image"} onChange={(value) => updateCategoryProject(side, index, "cover_alt", value)} />
+              <AdminImageUpload label="Cover image (opens first in gallery)" value={project.image_url || project.image || ""} onChange={(value) => {
                 updateCategoryProject(side, index, "image_url", value);
                 updateCategoryProject(side, index, "image", value);
               }} />
               <AdminGalleryEditor
                 images={project.gallery_images || []}
                 projectId={project.id || project.slug}
+                coverImage={project.image_url || project.image || ""}
+                coverAlt={project.cover_alt || project.title || ""}
                 onChange={(images) => updateCategoryProject(side, index, "gallery_images", images)}
               />
               <AdminRowActions index={index} length={categoryProjects.length} onMove={(itemIndex, direction) => moveCategoryProject(side, itemIndex, direction)} onRemove={(itemIndex) => removeCategoryProject(side, itemIndex)} />
@@ -908,13 +942,15 @@ function AdminStudioEditor({
               ]} onChange={(value) => updateWork(side, index, "span", Number(value))} />
               <AdminText label="Thumb number" value={work.num} onChange={(value) => updateWork(side, index, "num", value)} />
               <AdminText label="Cover alt text" value={work.cover_alt || ""} onChange={(value) => updateWork(side, index, "cover_alt", value)} />
-              <AdminImageUpload label="Cover image for Selected Work grid" value={work.cover_image_url || work.image || ""} onChange={(value) => {
+              <AdminImageUpload label="Cover image (grid card + first gallery image)" value={work.cover_image_url || work.image || ""} onChange={(value) => {
                 updateWork(side, index, "cover_image_url", value);
                 updateWork(side, index, "image", value);
               }} />
               <AdminGalleryEditor
                 images={work.gallery_images || []}
                 projectId={work.id}
+                coverImage={work.cover_image_url || work.image || ""}
+                coverAlt={work.cover_alt || work.title || ""}
                 onChange={(images) => updateWork(side, index, "gallery_images", images)}
               />
               <AdminRowActions index={index} length={works.length} onMove={(itemIndex, direction) => moveWork(side, itemIndex, direction)} onRemove={(itemIndex) => removeWork(side, itemIndex)} />
@@ -984,7 +1020,11 @@ function AdminCasesEditor({ draft, updateCase, updateCaseResult, updateCaseInfo,
           <AdminText label="Thumb number" value={data.num} onChange={(value) => updateCase(caseId, "num", value)} />
         </div>
 
-        <AdminImageUpload label="Case hero image (overrides generated thumbnail)" value={data.image || ""} onChange={(value) => updateCase(caseId, "image", value)} />
+        <AdminText label="Case hero alt text" value={data.cover_alt || ""} placeholder={data.title || "Describe the case hero image"} onChange={(value) => updateCase(caseId, "cover_alt", value)} />
+        <AdminImageUpload label="Case hero image (opens first in gallery)" value={data.image || ""} onChange={(value) => updateCase(caseId, "image", value)} />
+        <p className="admin-note admin-gallery-case-note">
+          Additional case images and their thumbnail order are managed in the matching Graphic or Software Dev Portfolio Work item. Keep its Case ID the same as this case.
+        </p>
         <AdminText label="Challenge" value={data.challenge} textarea onChange={(value) => updateCase(caseId, "challenge", value)} />
         <AdminText label="Pull quote" value={data.pull} textarea onChange={(value) => updateCase(caseId, "pull", value)} />
         <AdminText label="Process" value={data.process} textarea onChange={(value) => updateCase(caseId, "process", value)} />
@@ -1224,6 +1264,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
       short_description: "Short project description.",
       full_description: "Longer project details.",
       image_url: "",
+      cover_alt: "",
       gallery_images: [],
       tags: [],
       client_name: "",
@@ -1304,6 +1345,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onClose }) {
         eyebrow: "Case - Project",
         pal: 0,
         thumb: "Brand",
+        cover_alt: "",
         side_info: [["Client", "Client name"], ["Year", String(new Date().getFullYear())], ["Role", "Designer"]],
         challenge: "Describe the business problem.",
         pull: "Add a short pull quote.",
