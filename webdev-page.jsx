@@ -1,8 +1,7 @@
 // Software Development expanded page
 const { ArrowRight: WdArrowRight, ArrowOut: WdArrowOut, ArrowLeft: WdArrowLeft, Close: WdClose, webdev: WD_ICONS } = window.PortfolioIcons;
-const { thumbs: WdThumbs, WEBDEV_PALETTES: WD_PAL } = window.PortfolioShared;
+const { thumbs: WdThumbs, WEBDEV_PALETTES: WD_PAL, Footer: WebdevFooter } = window.PortfolioShared;
 
-const GITHUB_USERNAME = "Sajid777Officials";
 const WD_CATEGORY_THUMBS = ["WebApp", "Dashboard", "WebApp", "WebApp", "WebApp", "WebApp", "Dashboard", "Dashboard", "Code", "Code"];
 
 const LANG_COLORS = {
@@ -74,6 +73,14 @@ function wdFormatDate(value) {
   return date.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
 
+function wdHasStructuredCase(work, cases = {}) {
+  return Boolean(
+    cases?.[work.id] ||
+    (work.slug && cases?.[work.slug]) ||
+    Object.values(cases || {}).some((caseData) => caseData?.project_id === work.id)
+  );
+}
+
 function WebDevProjectThumb({ project, category, galleryId }) {
   const image = project.image_url || project.image;
   const thumbName = project.thumb || category?.thumb || WD_CATEGORY_THUMBS[category?.icon] || "WebApp";
@@ -91,13 +98,49 @@ function WebDevProjectThumb({ project, category, galleryId }) {
 }
 
 function WebDevProjectModal({ project, category, onClose }) {
+  const dialogRef = React.useRef(null);
+  const closeRef = React.useRef(null);
+
   React.useEffect(() => {
+    const returnFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
     const onKey = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(dialogRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) || []).filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
+      if (!focusable.length) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", onKey, true);
+      document.body.style.overflow = previousOverflow;
+      if (returnFocus instanceof HTMLElement && returnFocus.isConnected) returnFocus.focus();
+    };
+  }, []);
 
   const projectDate = wdFormatDate(project.project_date);
   const categoryName = category?.name || "Build";
@@ -105,9 +148,9 @@ function WebDevProjectModal({ project, category, onClose }) {
   const galleryId = `webdev-project-${project.id || project.slug}`;
 
   return (
-    <div className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="webdev-project-lightbox-title" onClick={onClose}>
+    <div ref={dialogRef} className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="webdev-project-lightbox-title" tabIndex="-1" onClick={onClose}>
       <div className="project-lightbox-panel" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close build preview">
+        <button ref={closeRef} type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close build preview">
           <WdClose size={16} sw={2.2} />
         </button>
         <div className="project-lightbox-media">
@@ -152,31 +195,36 @@ function WebDevProjectModal({ project, category, onClose }) {
   );
 }
 
-function GitHubProjects() {
+function GitHubProjects({ settings }) {
   const [repos, setRepos] = React.useState(null);
   const [err, setErr] = React.useState(false);
+  const username = String(settings?.username || "").trim();
+  const limit = Math.min(30, Math.max(1, Number(settings?.limit) || 12));
 
   React.useEffect(() => {
-    fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=30&type=public`)
+    if (!username || settings?.enabled === false) return;
+    setRepos(null);
+    setErr(false);
+    fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?sort=updated&per_page=30&type=public`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
         if (!Array.isArray(data)) { setErr(true); return; }
-        setRepos(data.filter(r => !r.fork).slice(0, 12));
+        setRepos(data.filter(r => !r.fork).slice(0, limit));
       })
       .catch(() => setErr(true));
-  }, []);
+  }, [username, limit, settings?.enabled]);
 
-  if (err || (repos && repos.length === 0)) return null;
+  if (!username || settings?.enabled === false || err || (repos && repos.length === 0)) return null;
 
   return (
     <div className="github-section section">
       <div className="section-head">
         <div>
-          <div className="portfolio-count">live · syncs automatically</div>
-          <h2 style={{ color: "white" }}>GitHub Projects</h2>
+          <div className="portfolio-count">{settings?.eyebrow || "Live - syncs automatically"}</div>
+          <h2 style={{ color: "white" }}>{settings?.title || "GitHub Projects"}</h2>
         </div>
-        <a className="github-profile-link" href={`https://github.com/${GITHUB_USERNAME}`} target="_blank" rel="noopener noreferrer">
-          View all on GitHub &thinsp;<WdArrowOut size={12} sw={2} />
+        <a className="github-profile-link" href={`https://github.com/${encodeURIComponent(username)}`} target="_blank" rel="noopener noreferrer">
+          {settings?.linkLabel || "View all on GitHub"} &thinsp;<WdArrowOut size={12} sw={2} />
         </a>
       </div>
 
@@ -357,8 +405,8 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
     <div ref={pageRef} className={"page page-webdev" + (visible ? " visible" : "")}>
       <div className="page-scroll">
         <div className="page-topbar">
-          <button className="back-btn" onClick={onBack}><WdArrowLeft size={18} sw={2} />Back to hero</button>
-          <div className="crumb">Index / Studio B - Software Development</div>
+          <button type="button" className="back-btn" onClick={onBack}><WdArrowLeft size={18} sw={2} />{studio.backLabel ?? "Back to hero"}</button>
+          <div className="crumb">{studio.crumbLabel ?? "Index / Studio B - Software Development"}</div>
         </div>
 
         <div className="page-hero">
@@ -387,8 +435,8 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
         </div>
 
-        <div className="tech-rail">
-          <div className="tech-rail-label">Stack -</div>
+        <div className="tech-rail" hidden={studio.showTechStack === false}>
+          <div className="tech-rail-label">{studio.stackLabel ?? "Stack -"}</div>
           <div className="tech-rail-marquee">
             <div className="tech-rail-track">
               {[0, 1].map(copy => (
@@ -405,12 +453,12 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
         </div>
 
-        <div className="section">
+        <div className="section" hidden={studio.showServices === false}>
           <div className="section-head">
-            <h2 style={{ color: "white" }}>Services <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>/ ten disciplines</em></h2>
+            <h2 style={{ color: "white" }}>{studio.servicesTitle ?? "Services"} <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>{studio.servicesSubtitle ?? "/ ten disciplines"}</em></h2>
             <div className="section-meta">{studio.servicesMeta || "Click a category to scope work"}</div>
           </div>
-          <div className="service-grid" aria-label="Software development service categories">
+          <div className="service-grid" role="tablist" aria-label="Software development service categories">
             {categories.map((service, index) => {
               const Icon = WD_ICONS[service.icon ?? index]?.Comp || WD_ICONS[0].Comp;
               const isActive = activeCategory === service.slug;
@@ -418,9 +466,10 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                 <button
                   key={service.slug}
                   type="button"
+                  role="tab"
                   className={"service-card" + (isActive ? " active" : "")}
                   onClick={() => selectCategory(service)}
-                  aria-pressed={isActive}
+                  aria-selected={isActive}
                   aria-controls="webdev-project-showcase"
                 >
                   <div>
@@ -441,12 +490,12 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
 
           {activeCategory && (
-            <div ref={showcaseRef} id="webdev-project-showcase" className="project-showcase" aria-live="polite">
+            <div ref={showcaseRef} id="webdev-project-showcase" className="project-showcase" role="tabpanel" aria-live="polite">
               <div className="project-showcase-top">
                 <button type="button" className="project-back-btn" onClick={clearCategory}>
-                  <WdArrowLeft size={14} sw={2} /> All services
+                  <WdArrowLeft size={14} sw={2} /> {studio.allServicesLabel ?? "All services"}
                 </button>
-                <div className="project-crumb">Services / {selectedCategory?.name}</div>
+                <div className="project-crumb">{studio.categoryCrumbLabel ?? "Services"} / {selectedCategory?.name}</div>
               </div>
               <div className="project-showcase-head">
                 <div>
@@ -507,7 +556,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                             <div className="category-project-foot">
                               {project.client_name && <span>{project.client_name}</span>}
                               <button type="button" className="project-card-action" onClick={() => setPreviewProject(project)}>
-                                View details <WdArrowOut size={12} sw={2} />
+                                {studio.projectCtaLabel || "View details"} <WdArrowOut size={12} sw={2} />
                               </button>
                             </div>
                           </div>
@@ -517,7 +566,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                   </div>
                   {filteredProjects.length > visibleCount && (
                     <button type="button" className="project-load-more" onClick={() => setVisibleCount(count => count + 6)}>
-                      Load more <WdArrowRight size={15} sw={2} />
+                      {studio.loadMoreLabel || "Load more"} <WdArrowRight size={15} sw={2} />
                     </button>
                   )}
                 </>
@@ -526,7 +575,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           )}
         </div>
 
-        <div className="portfolio-section">
+        <div className="portfolio-section" hidden={studio.showPortfolio === false}>
           <div className="section-head">
             <div>
               {works.length > 0 && <div className="portfolio-count">{works.length} {works.length === 1 ? "project" : "projects"}</div>}
@@ -538,6 +587,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
             {works.map((work) => {
               const Thumb = WdThumbs[work.thumb] || WdThumbs.WebApp;
               const coverImage = work.cover_image_url || work.image;
+              const canOpenCase = wdHasStructuredCase(work, content?.cases);
               const tilt = (e) => {
                 const card = e.currentTarget;
                 const rect = card.getBoundingClientRect();
@@ -553,9 +603,18 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
               };
               return (
                 <div key={work.id}
-                     className={"work-card span-" + (work.span || 4)}
+                     className={"work-card span-" + (work.span || 4) + (!canOpenCase ? " case-unavailable" : "")}
                      style={{ gridColumn: `span ${work.span || 4}` }}
-                     onClick={() => onOpenCase({ ...work, side: "webdev" })}
+                     role={canOpenCase ? "button" : undefined}
+                     tabIndex={canOpenCase ? 0 : undefined}
+                     aria-label={canOpenCase ? `View build ${work.title}` : undefined}
+                     onClick={canOpenCase ? () => onOpenCase({ ...work, side: "webdev" }) : undefined}
+                     onKeyDown={(event) => {
+                       if (canOpenCase && (event.key === "Enter" || event.key === " ")) {
+                         event.preventDefault();
+                         onOpenCase({ ...work, side: "webdev" });
+                       }
+                     }}
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
                   <div className="work-thumb">
@@ -570,7 +629,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                       <div className="work-ov-cat">{work.cat}</div>
                       <div className="work-ov-title">{work.title}</div>
                       {work.stack && <div className="work-ov-stack">{work.stack}</div>}
-                      <div className="work-ov-cta">View build &thinsp;<WdArrowOut size={12} sw={2} /></div>
+                      {canOpenCase && <div className="work-ov-cta">{studio.workCtaLabel ?? "View build"} &thinsp;<WdArrowOut size={12} sw={2} /></div>}
                     </div>
                   </div>
                   <div className="work-meta">
@@ -587,9 +646,9 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
         </div>
 
-        <GitHubProjects />
+        <GitHubProjects settings={content.integrations?.github} />
 
-        <div className="about-section" id="about-webdev">
+        <div className="about-section" id="about-webdev" hidden={studio.showAbout === false}>
           <div>
             <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
             <h2>{studio.aboutTitle || "A software studio for fast, usable products that keep working after launch."}</h2>
@@ -602,6 +661,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
             </div>
           </div>
         </div>
+        <WebdevFooter site={content.site} onContact={onContact} dark />
       </div>
       {previewProject && (
         <WebDevProjectModal

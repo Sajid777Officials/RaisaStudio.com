@@ -1,0 +1,3 @@
+[functions.verify-portfolio-media]
+verify_jwt = true
+static_files = ["./functions/verify-portfolio-media/magick.wasm"]

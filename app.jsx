@@ -1,11 +1,15 @@
-// Main App — hash-based router
+// Main App — clean-path router with backwards-compatible hash routes
 
 // ── Loading screen (first visit per session) ──────────────────────────────────
-function LoadingScreen({ onDone }) {
+function LoadingScreen({ onDone, site }) {
   const overlayRef = useRef(null);
   const logoRef    = useRef(null);
 
   useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      onDone();
+      return;
+    }
     const gsap = window.gsap;
     if (!gsap) { onDone(); return; }
 
@@ -18,8 +22,8 @@ function LoadingScreen({ onDone }) {
   return (
     <div ref={overlayRef} className="loading-screen">
       <div ref={logoRef} className="loading-logo">
-        <div className="loading-mark">V</div>
-        <div className="loading-brand">RAISA</div>
+        <div className="loading-mark">{site?.logoMark || "V"}</div>
+        <div className="loading-brand">{site?.brandName || "RAISA Studio"}</div>
       </div>
     </div>
   );
@@ -31,7 +35,12 @@ function PageSlide({ show, enterX, children }) {
   const FM = window.FramerMotion;
   if (!FM) {
     return (
-      <div style={{ position: "absolute", inset: 0, pointerEvents: show ? "auto" : "none" }}>
+      <div
+        role={show ? "main" : undefined}
+        aria-hidden={show ? undefined : "true"}
+        inert={show ? undefined : ""}
+        style={{ position: "absolute", inset: 0, pointerEvents: show ? "auto" : "none" }}
+      >
         {children}
       </div>
     );
@@ -39,6 +48,9 @@ function PageSlide({ show, enterX, children }) {
   const { motion } = FM;
   return (
     <motion.div
+      role={show ? "main" : undefined}
+      aria-hidden={show ? undefined : "true"}
+      inert={show ? undefined : ""}
       initial={false}
       animate={{ opacity: show ? 1 : 0, x: show ? 0 : enterX }}
       transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
@@ -48,15 +60,15 @@ function PageSlide({ show, enterX, children }) {
     </motion.div>
   );
 }
-// Routes:
-//   #           → hero (split view)
-//   #graphic    → Graphic Design studio
-//   #webdev     → Software Development studio
-//   #graphic/g1 → Graphic studio + case study g1 open
-//   #webdev/w1  → Software Dev studio + case study w1 open
-//   #admin      → Admin panel (password protected)
+// Routes (legacy # equivalents remain supported):
+//   /           → hero (split view)
+//   /graphic    → Graphic Design studio
+//   /webdev     → Software Development studio
+//   /graphic/g1 → Graphic studio + case study g1 open
+//   /webdev/w1  → Software Dev studio + case study w1 open
+//   /admin      → Admin panel (Supabase session + database role protected)
 
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useCallback } = React;
 const { Nav } = window.PortfolioShared;
 const Hero          = window.PortfolioHero;
 const GraphicPage   = window.PortfolioGraphic;
@@ -132,6 +144,8 @@ function GlobalImageViewer() {
   const [viewport, setViewport] = useState({ scale: 1, x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const viewportRef = useRef({ scale: 1, x: 0, y: 0 });
+  const dialogRef = useRef(null);
+  const returnFocusRef = useRef(null);
   const stageRef = useRef(null);
   const imageRef = useRef(null);
   const pointersRef = useRef(new Map());
@@ -191,8 +205,10 @@ function GlobalImageViewer() {
   };
 
   const closeGallery = () => {
+    const returnTarget = returnFocusRef.current;
     resetZoom();
     setGallery(null);
+    requestAnimationFrame(() => returnTarget?.focus?.());
   };
   const moveGallery = (step) => {
     setGallery((current) => {
@@ -343,6 +359,9 @@ function GlobalImageViewer() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
+      returnFocusRef.current =
+        imageData.element.closest?.("button, a, [tabindex]") ||
+        document.activeElement;
       setGallery(getFullscreenGallery(imageData));
     };
 
@@ -355,8 +374,29 @@ function GlobalImageViewer() {
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      dialogRef.current?.querySelector?.(".global-image-viewer-close")?.focus?.();
+    });
 
     const onKey = (event) => {
+      if (event.key === "Tab") {
+        const focusable = Array.from(
+          dialogRef.current?.querySelectorAll?.(
+            'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+          ) || []
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if (!["Escape", "ArrowLeft", "ArrowRight", "Home", "End", "+", "=", "-", "0"].includes(event.key)) return;
       event.preventDefault();
       event.stopPropagation();
@@ -391,6 +431,7 @@ function GlobalImageViewer() {
 
   return (
     <div
+      ref={dialogRef}
       className="global-image-viewer"
       role="dialog"
       aria-modal="true"
@@ -484,11 +525,27 @@ function GlobalImageViewer() {
 
 // ─── Router helpers ───────────────────────────────────────────────────────────
 function parseHash() {
-  const h = window.location.hash.replace(/^#\/?/, "").trim();
-  if (!h) return { view: null, caseId: null, section: null, admin: false };
-  if (h === "admin") return { view: null, caseId: null, section: null, admin: true };
-  if (h === "about") return { view: "graphic", caseId: null, section: "about", admin: false };
-  const [view, detail = null] = h.split("/");
+  // Keep old hash links working while using crawlable history paths for new
+  // navigation. Static hosts already rewrite unknown paths to index.html.
+  const legacyHash = window.location.hash.replace(/^#\/?/, "").trim();
+  const cleanPath = window.location.pathname
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .map((segment) => {
+      try { return decodeURIComponent(segment); } catch (_) { return segment; }
+    })
+    .join("/");
+  const routeValue = legacyHash || cleanPath;
+  if (!routeValue || routeValue === "index.html") {
+    return { view: null, caseId: null, section: null, admin: false };
+  }
+  if (routeValue === "admin") {
+    return { view: null, caseId: null, section: null, admin: true };
+  }
+  if (routeValue === "about") {
+    return { view: "graphic", caseId: null, section: "about", admin: false };
+  }
+  const [view, detail = null] = routeValue.split("/");
   if (view === "graphic" || view === "webdev") {
     const section = detail === "about" ? "about" : null;
     return { view, caseId: section ? null : detail, section, admin: false };
@@ -498,8 +555,13 @@ function parseHash() {
 
 function go(path) {
   // pushState keeps history so back-button works between views
-  const newHash = path ? "#" + path.replace(/^#/, "") : window.location.pathname + window.location.search;
-  history.pushState(null, "", newHash);
+  const normalizedPath = String(path || "")
+    .replace(/^#?\/?/, "")
+    .replace(/\/+$/, "");
+  const nextUrl = normalizedPath
+    ? `/${normalizedPath}${window.location.search}`
+    : `/${window.location.search}`;
+  history.pushState(null, "", nextUrl);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
@@ -508,20 +570,44 @@ function App() {
   const [route, setRoute]   = useState(parseHash);
   const [hovered, setHovered] = useState(null);
   const [content, setContent] = useState(() => window.PortfolioContent.load());
+  const [previewMode, setPreviewMode] = useState(false);
+  const [adminPreviewRoute, setAdminPreviewRoute] = useState(null);
   const [tweaks, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const [ready, setReady]   = useState(() => Boolean(sessionStorage.getItem("p-ready")));
+  const contentRequestRef = useRef(0);
 
   const Cursor = window.PortfolioCursor;
 
   const adminEnabled  = CFG.adminEnabled  !== false;
   const tweaksEnabled = CFG.tweaksEnabled !== false;
 
-  const { view: expanded, caseId, section: activeSection, admin: adminOpen } = route;
+  const adminOpen = route.admin;
+  const effectiveRoute = previewMode && adminPreviewRoute
+    ? adminPreviewRoute
+    : route;
+  const expanded = effectiveRoute.view;
+  const caseId = effectiveRoute.caseId;
+  const activeSection = effectiveRoute.section;
+  const publicUnavailable = content.publicEnabled === false && !previewMode;
 
   // Hydrate content from Supabase on mount; first render uses localStorage/defaults
   useEffect(() => {
-    window.PortfolioContent.loadAsync().then(setContent).catch(() => {});
+    const requestId = contentRequestRef.current + 1;
+    contentRequestRef.current = requestId;
+    window.PortfolioContent.loadAsync()
+      .then((nextContent) => {
+        if (requestId === contentRequestRef.current) setContent(nextContent);
+      })
+      .catch(() => {});
   }, []);
+
+  // Refresh visitors after a protected publish event without exposing drafts.
+  useEffect(
+    () => window.PortfolioContent.subscribe((nextContent) => {
+      if (!previewMode) setContent(nextContent);
+    }),
+    [previewMode]
+  );
 
   // Listen to popstate (browser back/forward + our go() calls)
   useEffect(() => {
@@ -568,47 +654,269 @@ function App() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Update document title per route
+  // Update route-aware metadata from managed SEO fields. Hash routing limits
+  // server-rendered crawler previews, but each editable view still gets a
+  // complete browser metadata contract and draft previews are always noindex.
   useEffect(() => {
-    const base = content.site?.metaTitle || "RAISA Studio";
-    const suffix = expanded === "graphic" ? " — Graphic Design"
-                 : expanded === "webdev"  ? " — Software Development"
-                 : adminOpen              ? " — Admin"
-                 : "";
-    document.title = activeSection === "about" ? `${base} - About Us` : base + suffix;
-  }, [expanded, activeSection, adminOpen, content.site?.metaTitle]);
+    const globalSeo = content.site?.seo || {};
+    const base = globalSeo.title || content.site?.metaTitle || "RAISA Studio";
+    const routeKey = adminOpen
+      ? "admin"
+      : activeSection === "about"
+        ? "about"
+        : expanded === "graphic"
+          ? "graphic"
+          : expanded === "webdev"
+            ? "webdev"
+            : "home";
+    const pageSeo = globalSeo.pages?.[routeKey] || {};
+    const activeWork = caseId
+      ? (content.works?.[expanded || "graphic"] || []).find(
+          (work) =>
+            (work.id === caseId || work.slug === caseId) &&
+            (previewMode || work.is_published !== false)
+        )
+      : null;
+    const exactCase = caseId ? content.cases?.[caseId] : null;
+    const linkedCase = caseId
+      ? Object.values(content.cases || {}).find((caseData) => (
+          caseData?.project_id === (activeWork?.id || caseId) ||
+          (activeWork?.slug && caseData?.project_id === activeWork.slug)
+        ))
+      : null;
+    const activeCaseCandidate = linkedCase || exactCase;
+    const caseRouteAvailable = Boolean(
+      caseId &&
+      activeWork &&
+      activeCaseCandidate &&
+      (previewMode || activeCaseCandidate.is_published !== false)
+    );
+    const activeCase = caseRouteAvailable
+      ? activeCaseCandidate
+      : null;
+    const caseSeo = activeCase?.seo || activeWork?.seo || {};
+    const caseTitle = caseRouteAvailable ? (activeCase?.title || activeWork?.title || "") : "";
+    const routeSuffix = routeKey === "graphic" ? " - Graphic Design"
+      : routeKey === "webdev" ? " - Software Development"
+      : routeKey === "about" ? " - About Us"
+      : routeKey === "admin" ? " - Admin"
+      : "";
+    const title = publicUnavailable
+      ? `${base} - Temporarily unavailable`
+      : caseTitle
+        ? caseSeo.title || `${base} - ${caseTitle} Case Study`
+        : pageSeo.title || `${base}${routeSuffix}`;
+    const description = String(
+      caseSeo.description ||
+      activeWork?.short_description ||
+      activeCase?.short_description ||
+      pageSeo.description ||
+      globalSeo.description ||
+      content.site?.metaDescription ||
+      ""
+    );
+    const canonicalBase = String(globalSeo.canonicalUrl || CFG.siteUrl || "")
+      .trim()
+      .replace(/\/+$/, "");
+    const routePath = caseTitle
+      ? `/${expanded || activeCase?.side || "graphic"}/${activeWork?.slug || activeWork?.id || caseId}`
+      : routeKey === "home" || routeKey === "admin"
+        ? ""
+        : `/${routeKey}`;
+    const canonicalUrl = String(
+      caseSeo.canonicalUrl ||
+      pageSeo.canonicalUrl ||
+      (canonicalBase ? `${canonicalBase}${routePath}` : "")
+    ).trim();
+    const sharingImage = String(
+      caseSeo.ogImage ||
+      activeWork?.cover_image_url ||
+      pageSeo.ogImage ||
+      globalSeo.ogImage ||
+      ""
+    ).trim();
+    const keywordValue = caseSeo.keywords || pageSeo.keywords || globalSeo.keywords || "";
+    const keywords = Array.isArray(keywordValue)
+      ? keywordValue.map((item) => String(item).trim()).filter(Boolean).join(", ")
+      : String(keywordValue).trim();
+    const forceNoIndex = Boolean(
+      publicUnavailable ||
+      adminOpen ||
+      previewMode ||
+      CFG.noIndex === true ||
+      globalSeo.noIndex === true ||
+      pageSeo.noIndex === true ||
+      caseSeo.noIndex === true
+    );
+    document.title = title;
 
-  useEffect(() => {
-    if (!caseId) return;
-    const activeWork = (content.works?.[expanded || "graphic"] || []).find(work => work.id === caseId || work.slug === caseId);
-    const activeCase = content.cases?.[caseId];
-    const caseTitle = activeWork?.title || activeCase?.title;
-    if (!caseTitle) return;
-    const base = content.site?.metaTitle || "RAISA Studio";
-    document.title = `${base} - ${caseTitle} Case Study`;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute("content", activeWork?.short_description || activeCase?.short_description || content.site?.metaDescription || "");
+    const setMeta = (selector, attribute, attributeValue, value) => {
+      let node = document.head.querySelector(selector);
+      if (!node && value) {
+        node = document.createElement("meta");
+        node.setAttribute(attribute, attributeValue);
+        document.head.appendChild(node);
+      }
+      if (node && value) node.setAttribute("content", value);
+      if (node && !value) node.removeAttribute("content");
+    };
+
+    setMeta('meta[name="description"]', "name", "description", description);
+    setMeta('meta[name="keywords"]', "name", "keywords", keywords);
+    setMeta('meta[property="og:title"]', "property", "og:title", title);
+    setMeta('meta[property="og:description"]', "property", "og:description", description);
+    setMeta('meta[property="og:image"]', "property", "og:image", sharingImage);
+    setMeta('meta[property="og:url"]', "property", "og:url", canonicalUrl);
+    setMeta('meta[property="og:type"]', "property", "og:type", caseTitle ? "article" : "website");
+    setMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
+    setMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
+    setMeta('meta[name="twitter:image"]', "name", "twitter:image", sharingImage);
+
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical && canonicalUrl) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
     }
-  }, [expanded, caseId, content]);
+    if (canonicalUrl) canonical?.setAttribute("href", canonicalUrl);
+    else canonical?.remove();
+
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      const nextRobots = document.createElement("meta");
+      nextRobots.name = "robots";
+      document.head.appendChild(nextRobots);
+      robots = nextRobots;
+    }
+    robots.setAttribute("content", forceNoIndex ? "noindex, nofollow" : "index, follow");
+
+    let structuredData = document.head.querySelector("#portfolio-structured-data");
+    if (!structuredData) {
+      structuredData = document.createElement("script");
+      structuredData.id = "portfolio-structured-data";
+      structuredData.type = "application/ld+json";
+      document.head.appendChild(structuredData);
+    }
+    const organization = {
+      "@type": "Organization",
+      name: content.site?.brandName || "RAISA Studio",
+      ...(canonicalBase ? { url: canonicalBase } : {}),
+      ...(content.site?.contact?.email ? { email: content.site.contact.email } : {}),
+      ...(content.site?.contact?.phone ? { telephone: content.site.contact.phone } : {}),
+      ...(content.site?.contact?.location
+        ? { areaServed: content.site.contact.location }
+        : {}),
+      sameAs: (content.site?.socialLinks || [])
+        .filter((item) => item.is_visible !== false && /^https?:\/\//i.test(String(item.url || "")))
+        .map((item) => item.url),
+    };
+    const structuredPayload = caseTitle
+      ? {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          name: caseTitle,
+          description,
+          ...(canonicalUrl ? { url: canonicalUrl } : {}),
+          ...(sharingImage ? { image: sharingImage } : {}),
+          creator: organization,
+        }
+      : {
+          "@context": "https://schema.org",
+          ...organization,
+          description,
+        };
+    structuredData.textContent = JSON.stringify(structuredPayload).replace(/</g, "\\u003c");
+  }, [expanded, activeSection, adminOpen, caseId, content, previewMode, publicUnavailable]);
 
   // ── Navigation helpers ──────────────────────────────────────────────────────
-  const goHome        = () => go("");
-  const goGraphic     = () => go("graphic");
-  const goWebdev      = () => go("webdev");
-  const goAbout       = () => go(expanded === "webdev" ? "webdev/about" : expanded === "graphic" ? "graphic/about" : "about");
+  const previewNavigate = (view = null, nextCaseId = null, section = null) => {
+    if (!previewMode) return false;
+    setAdminPreviewRoute({ view, caseId: nextCaseId, section, admin: false });
+    return true;
+  };
+  const goHome        = () => previewNavigate() || go("");
+  const goGraphic     = () => previewNavigate("graphic") || go("graphic");
+  const goWebdev      = () => previewNavigate("webdev") || go("webdev");
+  const goAbout       = () => (
+    previewNavigate(expanded === "webdev" ? "webdev" : "graphic", null, "about") ||
+    go(expanded === "webdev" ? "webdev/about" : expanded === "graphic" ? "graphic/about" : "about")
+  );
   const openCase      = (work) => {
     const side = work.side || expanded || "graphic";
-    go(`${side}/${work.id}`);
+    const routeId = work.slug || work.id;
+    if (!previewNavigate(side, routeId, null)) go(`${side}/${routeId}`);
   };
-  const closeCase     = () => go(expanded || "");
+  const closeCase     = () => previewNavigate(expanded || null) || go(expanded || "");
   const openAdmin     = () => go("admin");
   const closeAdmin    = () => {
-    // Don't put admin in history; go back to whatever was open before
-    history.back();
+    history.replaceState(null, "", `/${window.location.search}`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   };
+  const restorePublishedContent = useCallback(async () => {
+    const requestId = contentRequestRef.current + 1;
+    contentRequestRef.current = requestId;
+    setPreviewMode(false);
+    setAdminPreviewRoute(null);
+    try {
+      const published = await window.PortfolioContent.loadAsync();
+      if (requestId === contentRequestRef.current) setContent(published);
+    } catch (_) {
+      if (requestId === contentRequestRef.current) {
+        setContent(window.PortfolioContent.load());
+      }
+    }
+  }, []);
+  useEffect(() => {
+    if (!previewMode || adminOpen) return undefined;
+    let active = true;
+    let checking = false;
+    const verifyPreviewAccess = async () => {
+      if (!active || checking) return;
+      checking = true;
+      try {
+        const sb = window.PortfolioSupabase;
+        if (!sb?.auth) throw new Error("Admin authentication is unavailable.");
+        const { data, error } = await sb.auth.getUser();
+        if (error || !data?.user) throw error || new Error("The admin session has expired.");
+        const profile = await window.PortfolioContent.getAdminProfile();
+        if (!profile?.isActive || profile.userId !== data.user.id) {
+          throw new Error("Draft preview access is no longer active.");
+        }
+      } catch (_) {
+        if (active) await restorePublishedContent();
+      } finally {
+        checking = false;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") verifyPreviewAccess();
+    };
+    verifyPreviewAccess();
+    window.addEventListener("focus", verifyPreviewAccess);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", verifyPreviewAccess);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [previewMode, adminOpen, restorePublishedContent]);
+  const previewDraft = (nextDraft, options = {}) => {
+    contentRequestRef.current += 1;
+    setContent(nextDraft);
+    setPreviewMode(true);
+    setAdminPreviewRoute({
+      view: options.view === "graphic" || options.view === "webdev"
+        ? options.view
+        : null,
+      caseId: options.caseId || null,
+      section: options.section || null,
+      admin: false,
+    });
+    if (!options.keepOpen) closeAdmin();
+  };
+  const endPreview = restorePublishedContent;
   const contact       = () => {
-    const email = content.site?.contactEmail || "hello@voxstudio.dev";
+    const email = content.site?.contact?.email || content.site?.contactEmail || "hello@raisastudio.com";
     const sub   = encodeURIComponent(`Project inquiry — ${content.site?.brandName || "RAISA Studio"}`);
     window.location.href = `mailto:${email}?subject=${sub}`;
   };
@@ -620,12 +928,24 @@ function App() {
 
   return (
     <div className="app-shell">
-      {!ready && <LoadingScreen onDone={handleReady} />}
+      {!ready && <LoadingScreen onDone={handleReady} site={content.site} />}
       {Cursor && <Cursor />}
       <div className="stage-wrap">
+        {publicUnavailable && (
+          <main className="portfolio-unpublished" role="status" aria-live="polite">
+            <span>{content.site?.brandName || "RAISA Studio"}</span>
+            <h1>This portfolio is temporarily unavailable.</h1>
+            <p>Please check back soon.</p>
+          </main>
+        )}
         <div
           className="stage"
-          style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
+          aria-hidden={publicUnavailable ? "true" : undefined}
+          style={{
+            transform: `translate(-50%, -50%) scale(${scale})`,
+            visibility: publicUnavailable ? "hidden" : undefined,
+            pointerEvents: publicUnavailable ? "none" : undefined,
+          }}
         >
           <Nav
             site={content.site}
@@ -636,7 +956,7 @@ function App() {
             onWebdev={goWebdev}
             onAbout={goAbout}
             onContact={contact}
-            onAdmin={adminEnabled ? openAdmin : null}
+            onAdmin={adminEnabled && CFG.showAdminLink ? openAdmin : null}
             expanded={expanded}
             activeSection={activeSection}
           />
@@ -675,12 +995,13 @@ function App() {
             content={content}
             activeSide={expanded}
             caseId={caseId}
+            allowUnpublished={previewMode}
             onClose={closeCase}
             onNavigate={openCase}
           />
         </div>
 
-        {tweaksEnabled && (
+        {tweaksEnabled && !publicUnavailable && (
           <TweaksPanel title="Tweaks">
             <TweakSection label="Palette">
               <TweakColor label="Graphic Design red" value={tweaks.red}
@@ -727,9 +1048,22 @@ function App() {
           enabled={adminEnabled}
           open={adminOpen}
           content={content}
-          onSave={setContent}
+          onSave={(nextContent) => {
+            contentRequestRef.current += 1;
+            setPreviewMode(false);
+            setAdminPreviewRoute(null);
+            setContent(nextContent);
+          }}
+          onPreview={previewDraft}
+          onAccessRevoked={restorePublishedContent}
           onClose={closeAdmin}
         />
+      )}
+      {previewMode && !adminOpen && (
+        <div className="portfolio-preview-banner">
+          <span>Draft preview · not published</span>
+          <button type="button" onClick={endPreview}>Exit preview</button>
+        </div>
       )}
       <GlobalImageViewer />
     </div>

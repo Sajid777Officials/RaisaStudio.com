@@ -1,6 +1,6 @@
 // Graphic Design expanded page
 const { ArrowRight: GdArrowRight, ArrowOut: GdArrowOut, ArrowLeft: GdArrowLeft, Close: GdClose, graphic: GD_ICONS } = window.PortfolioIcons;
-const { thumbs: GdThumbs, GRAPHIC_PALETTES: GD_PAL } = window.PortfolioShared;
+const { thumbs: GdThumbs, GRAPHIC_PALETTES: GD_PAL, Footer: GraphicFooter } = window.PortfolioShared;
 
 const GD_CATEGORY_THUMBS = ["Packaging", "Poster", "Brand", "Brand", "Poster", "Packaging", "Brand", "Brand", "Social", "Poster"];
 
@@ -66,6 +66,14 @@ function gdFormatDate(value) {
   return date.toLocaleDateString(undefined, { month: "short", year: "numeric" });
 }
 
+function gdHasStructuredCase(work, cases = {}) {
+  return Boolean(
+    cases?.[work.id] ||
+    (work.slug && cases?.[work.slug]) ||
+    Object.values(cases || {}).some((caseData) => caseData?.project_id === work.id)
+  );
+}
+
 function GraphicProjectThumb({ project, category, galleryId }) {
   const image = project.image_url || project.image;
   const thumbName = project.thumb || GD_CATEGORY_THUMBS[category?.icon] || "Brand";
@@ -83,13 +91,49 @@ function GraphicProjectThumb({ project, category, galleryId }) {
 }
 
 function GraphicProjectModal({ project, category, onClose }) {
+  const dialogRef = React.useRef(null);
+  const closeRef = React.useRef(null);
+
   React.useEffect(() => {
+    const returnFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusFrame = window.requestAnimationFrame(() => closeRef.current?.focus());
     const onKey = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(dialogRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) || []).filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
+      if (!focusable.length) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    window.addEventListener("keydown", onKey, true);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener("keydown", onKey, true);
+      document.body.style.overflow = previousOverflow;
+      if (returnFocus instanceof HTMLElement && returnFocus.isConnected) returnFocus.focus();
+    };
+  }, []);
 
   const projectDate = gdFormatDate(project.project_date);
   const categoryName = category?.name || "Project";
@@ -97,9 +141,9 @@ function GraphicProjectModal({ project, category, onClose }) {
   const galleryId = `graphic-project-${project.id || project.slug}`;
 
   return (
-    <div className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="project-lightbox-title" onClick={onClose}>
+    <div ref={dialogRef} className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="project-lightbox-title" tabIndex="-1" onClick={onClose}>
       <div className="project-lightbox-panel" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close project preview">
+        <button ref={closeRef} type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close project preview">
           <GdClose size={16} sw={2.2} />
         </button>
         <div className="project-lightbox-media">
@@ -255,8 +299,8 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
     <div ref={pageRef} className={"page page-graphic" + (visible ? " visible" : "")}>
       <div className="page-scroll">
         <div className="page-topbar">
-          <button className="back-btn" onClick={onBack}><GdArrowLeft size={18} sw={2} />Back to hero</button>
-          <div className="crumb">Index / Studio A - Graphic Design</div>
+          <button type="button" className="back-btn" onClick={onBack}><GdArrowLeft size={18} sw={2} />{studio.backLabel ?? "Back to hero"}</button>
+          <div className="crumb">{studio.crumbLabel ?? "Index / Studio A - Graphic Design"}</div>
         </div>
 
         <div className="page-hero">
@@ -282,12 +326,12 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
         </div>
 
-        <div className="section">
+        <div className="section" hidden={studio.showServices === false}>
           <div className="section-head">
-            <h2>Services <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>/ ten disciplines</em></h2>
+            <h2>{studio.servicesTitle ?? "Services"} <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>{studio.servicesSubtitle ?? "/ ten disciplines"}</em></h2>
             <div className="section-meta">{studio.servicesMeta || "Click a category to brief us"}</div>
           </div>
-          <div className="service-grid" aria-label="Graphic design service categories">
+          <div className="service-grid" role="tablist" aria-label="Graphic design service categories">
             {categories.map((service, index) => {
               const Icon = GD_ICONS[service.icon ?? index]?.Comp || GD_ICONS[0].Comp;
               const isActive = activeCategory === service.slug;
@@ -295,9 +339,10 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                 <button
                   key={service.slug}
                   type="button"
+                  role="tab"
                   className={"service-card" + (isActive ? " active" : "")}
                   onClick={() => selectCategory(service)}
-                  aria-pressed={isActive}
+                  aria-selected={isActive}
                   aria-controls="graphic-project-showcase"
                 >
                   <div>
@@ -320,12 +365,12 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
 
           {activeCategory && (
-            <div ref={showcaseRef} id="graphic-project-showcase" className="project-showcase" aria-live="polite">
+            <div ref={showcaseRef} id="graphic-project-showcase" className="project-showcase" role="tabpanel" aria-live="polite">
               <div className="project-showcase-top">
                 <button type="button" className="project-back-btn" onClick={clearCategory}>
-                  <GdArrowLeft size={14} sw={2} /> All services
+                  <GdArrowLeft size={14} sw={2} /> {studio.allServicesLabel ?? "All services"}
                 </button>
-                <div className="project-crumb">Services / {selectedCategory?.name}</div>
+                <div className="project-crumb">{studio.categoryCrumbLabel ?? "Services"} / {selectedCategory?.name}</div>
               </div>
               <div className="project-showcase-head">
                 <div>
@@ -385,7 +430,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                             <div className="category-project-foot">
                               {project.client_name && <span>{project.client_name}</span>}
                               <button type="button" className="project-card-action" onClick={() => setPreviewProject(project)}>
-                                View details <GdArrowOut size={12} sw={2} />
+                                {studio.projectCtaLabel || "View details"} <GdArrowOut size={12} sw={2} />
                               </button>
                             </div>
                           </div>
@@ -395,7 +440,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                   </div>
                   {filteredProjects.length > visibleCount && (
                     <button type="button" className="project-load-more" onClick={() => setVisibleCount(count => count + 6)}>
-                      Load more <GdArrowRight size={15} sw={2} />
+                      {studio.loadMoreLabel || "Load more"} <GdArrowRight size={15} sw={2} />
                     </button>
                   )}
                 </>
@@ -404,7 +449,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           )}
         </div>
 
-        <div className="portfolio-section">
+        <div className="portfolio-section" hidden={studio.showPortfolio === false}>
           <div className="section-head">
             <div>
               {works.length > 0 && <div className="portfolio-count">{works.length} {works.length === 1 ? "project" : "projects"}</div>}
@@ -416,6 +461,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
             {works.map((work) => {
               const Thumb = GdThumbs[work.thumb] || GdThumbs.Brand;
               const coverImage = work.cover_image_url || work.image;
+              const canOpenCase = gdHasStructuredCase(work, content?.cases);
               const tilt = (e) => {
                 const card = e.currentTarget;
                 const rect = card.getBoundingClientRect();
@@ -431,9 +477,18 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
               };
               return (
                 <div key={work.id}
-                     className={"work-card span-" + (work.span || 4)}
+                     className={"work-card span-" + (work.span || 4) + (!canOpenCase ? " case-unavailable" : "")}
                      style={{ gridColumn: `span ${work.span || 4}` }}
-                     onClick={() => onOpenCase({ ...work, side: "graphic" })}
+                     role={canOpenCase ? "button" : undefined}
+                     tabIndex={canOpenCase ? 0 : undefined}
+                     aria-label={canOpenCase ? `View case ${work.title}` : undefined}
+                     onClick={canOpenCase ? () => onOpenCase({ ...work, side: "graphic" }) : undefined}
+                     onKeyDown={(event) => {
+                       if (canOpenCase && (event.key === "Enter" || event.key === " ")) {
+                         event.preventDefault();
+                         onOpenCase({ ...work, side: "graphic" });
+                       }
+                     }}
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
                   <div className="work-thumb">
@@ -447,7 +502,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                     <div className="work-overlay">
                       <div className="work-ov-cat">{work.cat}</div>
                       <div className="work-ov-title">{work.title}</div>
-                      <div className="work-ov-cta">View case &thinsp;<GdArrowOut size={12} sw={2} /></div>
+                      {canOpenCase && <div className="work-ov-cta">{studio.workCtaLabel ?? "View case"} &thinsp;<GdArrowOut size={12} sw={2} /></div>}
                     </div>
                   </div>
                   <div className="work-meta">
@@ -463,7 +518,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
         </div>
 
-        <div className="about-section" id="about">
+        <div className="about-section" id="about" hidden={studio.showAbout === false}>
           <div>
             <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
             <h2>{studio.aboutTitle || "A focused studio for brands that need to look intentional everywhere."}</h2>
@@ -476,6 +531,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
             </div>
           </div>
         </div>
+        <GraphicFooter site={content.site} onContact={onContact} />
       </div>
       {previewProject && (
         <GraphicProjectModal

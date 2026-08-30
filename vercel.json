@@ -31,7 +31,16 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://uionppglaonfsocxrxll.supabase.co; connect-src 'self' https://api.github.com https://uionppglaonfsocxrxll.supabase.co; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' mailto:"
+          "value": "frame-ancestors 'none';"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }

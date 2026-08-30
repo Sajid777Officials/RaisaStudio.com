@@ -1,229 +1,312 @@
-# Portfolio Deployment Guide
+# RAISA Studio Portfolio CMS
 
-## Quick Start (Local Dev)
+The portfolio is a static React/esbuild site with a Supabase-backed CMS. Public
+visitors can read only the published content snapshot. Staff edit a separate
+draft after Supabase authentication and a database-enforced role check.
+
+## 1. Local setup
+
+Use Node.js 22 or newer and install the exact lockfile dependencies:
 
 ```bash
-npm install
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+Set these browser-safe values in `.env`:
+
+```env
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_KEY
+PORTFOLIO_ENABLE_ADMIN=true
+PORTFOLIO_SHOW_ADMIN_LINK=true
+PORTFOLIO_SITE_URL=https://your-domain.com
+```
+
+`PORTFOLIO_ENABLE_TWEAKS` enables the optional visual-tuning tools,
+`PORTFOLIO_NO_INDEX` emits search-engine no-index metadata, and
+`PORTFOLIO_SHOW_ADMIN_LINK` controls only the public Admin-link visibility.
+
+An existing `SUPABASE_ANON_KEY` also works as a compatibility alias. Never use a
+Supabase secret key, `service_role` key, database password, or admin password in
+this file or in frontend code.
+
+## 2. Install the secure database schema
+
+Back up the target project first. In Supabase, open **SQL Editor → New query**
+and apply these files in order:
+
+```text
+supabase/migrations/202607260001_secure_portfolio_cms.sql
+supabase/migrations/202607290001_portfolio_schema_v1.sql
+supabase/migrations/202607290002_seed_portfolio_content_v1.sql
+supabase/migrations/202607290003_secure_media_lifecycle.sql
+supabase/migrations/202607290004_admin_operations.sql
+supabase/migrations/202608040005_private_verified_media_and_strict_content.sql
+```
+
+The schema migration preserves existing snapshots and formalizes
+`schemaVersion: 1`. The seed initializes only an unequivocally pristine
+singleton. It skips any database with existing draft, published, revision,
+activity, or actor state rather than merging or overwriting it.
+
+It creates:
+
+- protected draft and published content snapshots;
+- optimistic revision checks to prevent one browser overwriting another;
+- revision history and activity logs;
+- private draft-media staging and private immutable signed-delivery media;
+- canonical media assets and draft/published reference records;
+- role-protected RPC functions for save, publish, and restore;
+- server-side document validation and a sanitized public projection;
+- an Owner/Publisher-only whole-site unpublish RPC;
+- a public publication event that never exposes draft content.
+
+New media is staged in the private `portfolio-media-drafts` bucket. Published
+bytes use immutable generated paths in the private `portfolio-media-public`
+bucket and are delivered with 300-second signed URLs; replacement creates a new
+asset instead of overwriting a published object. The legacy
+`portfolio-uploads` bucket and metadata are retained read-only during the
+transition. Do not remove legacy objects until their content references have
+been migrated and verified.
+
+Migration 005 is a coordinated cutover, not an automatic trust backfill. Before
+production, inventory every existing canonical asset and its preserved staging
+source. Deploy the dormant verifier first, apply 005 in a maintenance window,
+then reverify each source or replace/re-upload it. Existing unverified canonical
+media fails closed after 005. See the exact rollout in
+[`docs/MEDIA_OPERATIONS.md`](docs/MEDIA_OPERATIONS.md).
+
+### Deploy the trusted media verifier
+
+`supabase/functions/verify-portfolio-media/index.ts` needs the built-in Edge
+secrets `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and
+`SUPABASE_SERVICE_ROLE_KEY`. Never copy the service key into `.env`, frontend
+code, logs, or content. Add one custom Edge secret:
+
+```text
+PORTFOLIO_ALLOWED_ORIGINS=https://raisastudio.com,https://www.raisastudio.com
+```
+
+Values are comma-separated exact origins. HTTPS is required except HTTP
+loopback for local verification. The checked-in `supabase/config.toml` enables
+gateway JWT verification and bundles the pinned ImageMagick WASM using
+`static_files`. Deploy with Supabase CLI 2.7 or newer and its local Docker
+bundler; do not pass `--use-api`, because API-only deployment does not bundle
+`static_files`. The vendored WASM is 14,593,449 bytes and keeps the locally
+bundled function below Supabase's 20 MB limit, but CPU, memory, cold-start, and
+full-decode behavior still require staging proof. Configure and deploy with
+commands like these (replace both placeholders):
+
+```bash
+supabase secrets set PORTFOLIO_ALLOWED_ORIGINS="https://raisastudio.com,https://www.raisastudio.com" --project-ref YOUR_PROJECT_REF
+supabase functions deploy verify-portfolio-media --project-ref YOUR_PROJECT_REF
+```
+
+Deploy to staging and exercise real Auth/RLS/Storage before production. These
+commands are documentation only; this repository work did not run a deployment.
+
+## Architecture and callable boundaries
+
+```text
+Public browser -> get_published_portfolio + get_public_media_manifest
+               -> Storage createSignedUrls(paths, 300) for canonical media
+
+Authenticated admin -> admin state/history/activity/staff RPCs
+                    -> save/publish/restore/unpublish RPCs
+                    -> reserve/copy/delete media through RPC + Storage RLS
+                    -> verify-portfolio-media(assetId only)
+
+Edge verifier -> validates Origin + JWT + active editor role
+              -> derives reserved Storage path from protected metadata
+              -> full decode + SHA-256 + bounded animation checks
+              -> service_role-only record_portfolio_media_verification
+```
+
+Anonymous callers can execute only the sanitized public content/manifest
+surface and the narrowly scoped Storage read predicate used for signed URLs.
+Authenticated staff can call only role-appropriate security-definer RPCs;
+canonical tables remain direct-write denied. The Edge Function is the sole
+trusted byte-verification writer. `service_role` bypass is never available to a
+browser.
+
+The first owner row should look like:
+
+```sql
+insert into public.admin_users (user_id, role, is_active)
+values ('YOUR_AUTH_USER_UUID', 'owner', true)
+on conflict (user_id) do update
+set role = excluded.role,
+    is_active = excluded.is_active,
+    updated_at = now();
+```
+
+Create or invite each staff account through trusted Supabase Auth
+administration first. Then an existing Owner can assign, change, or deactivate
+its CMS role through the owner-only Staff workflow (or reviewed trusted tooling
+calling the protected RPCs). The CMS never creates Auth accounts or handles
+their passwords. The database prevents demoting or deactivating the final
+active Owner.
+
+## 3. Build and preview
+
+```bash
 npm run build
 npm run preview
 ```
 
-The deployable site is generated in `dist/`.
+Open the preview URL and add `#admin`, for example:
 
-For live editing without a build step, open `Portfolio.html` directly in a browser.
-
----
-
-## Supabase Backend Setup
-
-Supabase gives the admin panel real backend persistence — edits made at `#admin` appear on every device and browser instantly.
-
-### 1. Create a Supabase project
-
-1. Go to [supabase.com](https://supabase.com) and create a free project.
-2. Note your **Project URL** and **anon public key** from  
-   `Dashboard → Project Settings → API`.
-
-### 2. Run the SQL schema
-
-Open `SQL Editor` in the Supabase dashboard and run:
-
-```sql
--- portfolio_content: stores the entire portfolio JSON as a single row
-CREATE TABLE IF NOT EXISTS portfolio_content (
-  id          integer PRIMARY KEY DEFAULT 1,
-  content_json jsonb   NOT NULL,
-  updated_at  timestamptz NOT NULL DEFAULT now()
-);
-
--- Enforce single-row invariant
-ALTER TABLE portfolio_content
-  ADD CONSTRAINT portfolio_content_single_row CHECK (id = 1);
-
--- portfolio_uploads: metadata for images stored in Supabase Storage
-CREATE TABLE IF NOT EXISTS portfolio_uploads (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name         text        NOT NULL,
-  mime_type    text        NOT NULL,
-  size         bigint      NOT NULL DEFAULT 0,
-  public_url   text        NOT NULL,
-  storage_path text        NOT NULL,
-  created_at   timestamptz NOT NULL DEFAULT now()
-);
+```text
+http://localhost:4173/#admin
 ```
 
-### 3. Enable Row Level Security and add policies
+Sign in with the Supabase Auth email and password. On a fresh database, verify
+that the guarded seed created the expected content. If it intentionally skipped
+an existing CMS, review that content instead of replacing it.
 
-```sql
--- portfolio_content
-ALTER TABLE portfolio_content ENABLE ROW LEVEL SECURITY;
+1. Review the server draft and publication status.
+2. Make a harmless staging-only edit and choose **Save draft**.
+3. Confirm that the public site did not change.
+4. Choose **Publish** with an Owner or Publisher account.
+5. Reload the public site and verify the published projection.
 
-CREATE POLICY "Public can read content"
-  ON portfolio_content FOR SELECT USING (true);
+`Portfolio.html` is a compatibility entry for older local bookmarks. Run the
+build first; it consumes the same pinned `dist/assets/*` runtime and generated
+browser-safe configuration as the production entry.
 
-CREATE POLICY "Authenticated users can upsert content"
-  ON portfolio_content FOR ALL
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+## Roles
 
--- portfolio_uploads
-ALTER TABLE portfolio_uploads ENABLE ROW LEVEL SECURITY;
+| Role | Read draft/history/media | Save draft | Stage/replace/edit alt/private cleanup | Publish/restore/unpublish | Promote/delete canonical delivery media |
+|---|---:|---:|---:|---:|---:|
+| `owner` | Yes | Yes | Yes | Yes | Yes |
+| `publisher` | Yes | Yes | Yes | Yes | Yes |
+| `editor` | Yes | Yes | Yes | No | No |
+| `viewer` | Yes | No | No | No | No |
 
-CREATE POLICY "Public can read uploads"
-  ON portfolio_uploads FOR SELECT USING (true);
+The UI reflects these permissions, but the real enforcement is in Postgres
+grants, RLS policies, and protected functions.
 
-CREATE POLICY "Authenticated users can manage uploads"
-  ON portfolio_uploads FOR ALL
-  USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-```
+## Content workflow
 
-### 4. Create the Storage bucket
+- **Save draft** stores changes privately and creates a revision.
+- **Publish** copies the saved draft to the public snapshot.
+- **Discard draft** removes only unsaved browser changes.
+- **Preview** renders the current working copy in the real portfolio layout for
+  this browser only; it does not publish or overwrite the public snapshot.
+- **Reload** fetches the latest server draft and revisions.
+- **History** can restore an older snapshot into the draft; restoring does not
+  publish automatically.
+- Records marked unpublished, inactive, or hidden are removed from the
+  anonymous public JSON projection rather than only hidden by React.
+- Whole-site unpublish is available to Owners and Publishers through the
+  confirmed Dashboard action backed by the protected database RPC.
+- JPEG, PNG, WebP, and GIF files receive browser preflight before upload. After
+  upload, the trusted Edge verifier downloads the private reserved object,
+  fully decodes and hashes it, then records its immutable Storage identity.
+  Non-GIF images can be cropped; animated GIFs retain their original frames.
+- Alternative text is required for new managed assets.
+- Draft content stores stable `media://<uuid>` references. Authorized admin
+  previews resolve private assets with short-lived signed URLs.
+- Publishing promotes verified draft assets to immutable private delivery paths
+  before the public document is finalized; public pages receive short-lived
+  signed URLs, never a canonical public object URL.
+- Replacement creates a new asset and updates the working draft; it never
+  overwrites bytes at a published URL.
+- Deletion is a prepare/finalize workflow and is denied while the current draft,
+  current published snapshot, or any retained revision contains the asset.
 
-In the Supabase dashboard go to **Storage → New bucket**:
+## Production hosting
 
-| Setting | Value |
-|---------|-------|
-| Name | `portfolio-uploads` |
-| Public bucket | ✅ Yes |
+Build command:
 
-Then add storage RLS policies via `SQL Editor`:
-
-```sql
--- Allow public read of uploaded images
-CREATE POLICY "Public can view uploads"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'portfolio-uploads');
-
--- Only authenticated users can upload
-CREATE POLICY "Authenticated users can upload"
-  ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'portfolio-uploads' AND auth.role() = 'authenticated');
-
--- Only authenticated users can delete
-CREATE POLICY "Authenticated users can delete uploads"
-  ON storage.objects FOR DELETE
-  USING (bucket_id = 'portfolio-uploads' AND auth.role() = 'authenticated');
-```
-
-### 5. Create the admin user
-
-1. Go to `Dashboard → Authentication → Users → Add User`.
-2. Enter your **email** and a **strong password**.
-3. Optionally disable public signups: `Authentication → Settings → Disable sign ups`.
-
-> This user's email + password is what you enter at `#admin` when Supabase is configured.
-
-### 6. Set environment variables
-
-Copy `.env.example` to `.env` and fill in the values:
-
-```bash
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGci...
-PORTFOLIO_ADMIN_PASSCODE=use-a-long-private-passcode
-PORTFOLIO_SITE_URL=https://your-domain.com
-```
-
-> `PORTFOLIO_ADMIN_PASSCODE` is still required by the build check, but at runtime  
-> the admin logs in with Supabase email + password when Supabase is configured.
-
----
-
-## Admin Panel
-
-Open `/#admin` or press `Ctrl+Shift+A` on any page.
-
-**With Supabase configured:**
-- Login with the email + password you created in step 5.
-- All saves go to Supabase and are instantly visible site-wide.
-- Images upload to Supabase Storage (public URLs, not base64).
-
-**Without Supabase (localStorage mode):**
-- Login with the passcode set in `PortfolioConfig.adminPasscode`.
-- Changes persist in that browser only.
-- Images are stored as base64 in localStorage (~5 MB limit).
-
----
-
-## Build
-
-```bash
-# Minimal build (localStorage only)
-PORTFOLIO_ADMIN_PASSCODE="your-passcode" npm run build
-
-# Full build with Supabase backend
-SUPABASE_URL="https://xxxx.supabase.co" \
-SUPABASE_ANON_KEY="eyJhbGci..." \
-PORTFOLIO_ADMIN_PASSCODE="your-passcode" \
-PORTFOLIO_SITE_URL="https://your-domain.com" \
+```text
 npm run build
 ```
 
-On Windows PowerShell:
+Publish directory:
 
-```powershell
-$env:SUPABASE_URL      = "https://xxxx.supabase.co"
-$env:SUPABASE_ANON_KEY = "eyJhbGci..."
-$env:PORTFOLIO_ADMIN_PASSCODE = "your-passcode"
-$env:PORTFOLIO_SITE_URL = "https://your-domain.com"
+```text
+dist
+```
+
+Configure the same environment variables in Netlify, Vercel, Cloudflare Pages,
+or the chosen host. The Admin button is visible by default whenever the secure
+Supabase backend is enabled. Set `PORTFOLIO_SHOW_ADMIN_LINK=false` only when you
+intentionally want to hide it from public navigation; authorized staff can
+still open `/#admin`.
+
+Preserve SPA and extensionless-route hard reloads in production. The build emits
+a Netlify/Cloudflare Pages-compatible `dist/_redirects` fallback; Vercel uses
+the checked-in `vercel.json`. On another host, rewrite unresolved extensionless
+and SPA routes to `index.html`, then directly hard-reload `/graphic`, `/webdev`,
+`/about`, a service/category route, and a case route before release.
+
+The generated `_headers` file includes CSP, framing protection, MIME sniffing
+protection, a restricted referrer policy, and revalidation for unhashed runtime
+assets. The exact runtime CSP origin is derived from `SUPABASE_URL`.
+
+The formal content contract is documented in
+[`docs/CMS_CONTENT_CONTRACT.md`](docs/CMS_CONTENT_CONTRACT.md).
+The page-by-page editable field map and recovery-fallback boundary are in
+[`docs/EDITABLE_CONTENT_INVENTORY.md`](docs/EDITABLE_CONTENT_INVENTORY.md).
+The media lifecycle, migration, recovery, and admin procedures are documented
+in [`docs/MEDIA_OPERATIONS.md`](docs/MEDIA_OPERATIONS.md).
+Daily login, role, staff, editing, publishing, conflict-recovery, and sign-out
+procedures are in [`docs/ADMIN_GUIDE.md`](docs/ADMIN_GUIDE.md).
+The 13-area release gate and staging evidence record are in
+[`docs/FINAL_VERIFICATION_CHECKLIST.md`](docs/FINAL_VERIFICATION_CHECKLIST.md).
+Record the resulting evidence and residual risks in
+[`docs/FINAL_VERIFICATION_REPORT.md`](docs/FINAL_VERIFICATION_REPORT.md).
+
+## Automated checks
+
+```bash
+npm run seed:check
 npm run build
+npm run check
+npm run verify:browser
 ```
 
----
+`seed:check` verifies migration 002's embedded JSON/checksum/inventory integrity
+and confirms that the current defaults normalize successfully. Migration 005,
+not a rewrite of immutable migration 002, reconciles newly managed studio fields
+by filling missing keys only and recording revision/activity history.
+`check` rebuilds production output and runs the available static/VM contract
+tests. `verify:browser` performs the local browser matrix and writes evidence
+under `artifacts/browser-verification`. Database, Auth, Storage, Edge runtime,
+and role integration tests still require a separate local or staging Supabase
+project. These repository checks do not upload, promote, delete, or mutate any
+live Supabase object.
 
-## Static Hosting
+There is currently no separate lint or type-check command in `package.json`.
+Do not report those checks as passed; use the final verification checklist to
+record them as unavailable unless scripts are added later.
 
-Upload the contents of `dist/` to any static host.
+## Verification checklist
 
-### Netlify
+- [ ] Build succeeds with a publishable key.
+- [ ] Build rejects `sb_secret_...` and legacy `service_role` JWT keys.
+- [ ] No hard-coded passcode or browser-only admin fallback exists.
+- [ ] A normal Auth user without `admin_users` access is rejected.
+- [ ] `viewer` cannot save, upload, publish, or restore.
+- [ ] `editor` can save drafts, stage media, and clean up unreferenced private assets but cannot publish, promote, or delete public media.
+- [ ] `owner`/`publisher` can publish, restore, promote, and safely delete media.
+- [ ] Draft edits are invisible to logged-out visitors before publication.
+- [ ] Unpublished records are absent from the public RPC response.
+- [ ] Whole-site unpublish replaces cached public content with the unavailable state.
+- [ ] Published edits appear after reload/realtime refresh.
+- [ ] Draft media is private and previewed only through an authorized signed URL.
+- [ ] Canonical published media is direct-public-read denied and resolves only through approved 300-second signed URLs.
+- [ ] Renamed, truncated, malformed, oversized, dimension/frame-bomb media fails trusted Edge verification.
+- [ ] Published media cannot be overwritten in place or substituted after verification.
+- [ ] Current or retained-revision referenced images cannot be deleted from the media library.
+- [ ] Legacy public media still renders but cannot receive new direct writes.
+- [ ] Desktop, tablet, and mobile admin layouts remain usable.
 
-```
-Build command:      npm run build
-Publish directory:  dist
-```
+Supabase references:
 
-Add env vars in `Site settings → Environment variables`.
-
-### Vercel
-
-```
-Build command:   npm run build
-Output directory: dist
-```
-
-Add env vars in `Project settings → Environment Variables`.
-
-### Cloudflare Pages
-
-```
-Build command:         npm run build
-Build output directory: dist
-```
-
-Add env vars in `Settings → Environment variables`.
-
----
-
-## All Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SUPABASE_URL` | No | Supabase project URL. Enables backend mode. |
-| `SUPABASE_ANON_KEY` | No | Supabase anon/public key. |
-| `VITE_SUPABASE_URL` | No | Alternative prefix (same effect). |
-| `VITE_SUPABASE_ANON_KEY` | No | Alternative prefix (same effect). |
-| `PORTFOLIO_ADMIN_PASSCODE` | Yes* | Required by build when admin is enabled. |
-| `PORTFOLIO_SITE_URL` | No | Adds canonical, sitemap, and OG URL tags. |
-| `PORTFOLIO_ENABLE_TWEAKS` | No | Show/hide the tweaks panel. Default: `false`. |
-| `PORTFOLIO_NO_INDEX` | No | Set `true` for staging builds. Default: `false`. |
-
-*The passcode is validated at build time to prevent accidentally publishing the default value.
-
----
-
-## Backward Compatibility
-
-- If `SUPABASE_URL` / `SUPABASE_ANON_KEY` are not set, the site runs in localStorage mode — same as before. All existing routes (`#graphic`, `#webdev`, `#admin`, case studies) continue to work.
-- Default content loads from code if Supabase has no saved content yet.
-- The `window.PortfolioContent` API is unchanged (`.load()`, `.save()`, `.reset()`); `.save()` and `.reset()` are now async — `admin-panel.jsx` awaits them and shows loading/error states.
+- <https://supabase.com/docs/guides/database/postgres/row-level-security>
+- <https://supabase.com/docs/guides/storage/security/access-control>
+- <https://supabase.com/docs/guides/getting-started/api-keys>

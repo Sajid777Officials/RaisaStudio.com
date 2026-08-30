@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raisastudio.com/schemas/portfolio-content-v1.schema.json",
+  "title": "RAISA Studio portfolio content v1",
+  "type": "object",
+  "required": ["schemaVersion", "site", "studios", "services", "projects", "works", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "publicEnabled": { "type": "boolean", "readOnly": true },
+    "site": { "$ref": "#/$defs/site" },
+    "studios": { "$ref": "#/$defs/sidedStudios" },
+    "services": { "$ref": "#/$defs/sidedServices" },
+    "projects": { "$ref": "#/$defs/sidedProjects" },
+    "works": { "$ref": "#/$defs/sidedWorks" },
+    "cases": {
+      "type": "object",
+      "maxProperties": 2000,
+      "propertyNames": { "$ref": "#/$defs/routeIdentifier" },
+      "additionalProperties": { "$ref": "#/$defs/caseStudy" }
+    },
+    "techStack": { "type": "array", "maxItems": 200, "items": { "type": "string", "maxLength": 100 } },
+    "integrations": {
+      "type": "object",
+      "properties": {
+        "github": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "username": { "$ref": "#/$defs/text" },
+            "eyebrow": { "$ref": "#/$defs/text" },
+            "title": { "$ref": "#/$defs/text" },
+            "linkLabel": { "$ref": "#/$defs/text" },
+            "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "routeIdentifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,199}$",
+      "not": { "enum": ["about", "admin", "preview"] }
+    },
+    "text": { "type": "string", "maxLength": 20000 },
+    "order": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+    "email": {
+      "type": "string",
+      "maxLength": 254,
+      "pattern": "^$|^[A-Za-z0-9.!#$%&'*+/=?^_{}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"
+    },
+    "https": {
+      "type": "string",
+      "pattern": "^$|^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?::[1-9][0-9]{0,4})?(?:/[^\\s\\\\]*)?$"
+    },
+    "navigationUrl": {
+      "type": "string",
+      "pattern": "^$|^#[A-Za-z0-9._~!$&'()*+,;=:@%/?#-]+$|^/(?!/)[A-Za-z0-9._~!$&'()*+,;=:@%/?#-]*$|^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?::[1-9][0-9]{0,4})?(?:/[^\\s\\\\]*)?$"
+    },
+    "mediaSource": {
+      "type": "string",
+      "pattern": "^$|^media://[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$|^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?::[1-9][0-9]{0,4})?(?:/[^\\s\\\\]*)?$"
+    },
+    "seo": {
+      "type": "object",
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "description": { "$ref": "#/$defs/text" },
+        "keywords": { "type": "array", "maxItems": 100, "items": { "type": "string", "maxLength": 100 } },
+        "canonicalUrl": { "$ref": "#/$defs/https" },
+        "ogImage": { "$ref": "#/$defs/mediaSource" },
+        "noIndex": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "siteSeo": {
+      "type": "object",
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "description": { "$ref": "#/$defs/text" },
+        "keywords": { "type": "array", "maxItems": 100, "items": { "type": "string", "maxLength": 100 } },
+        "canonicalUrl": { "$ref": "#/$defs/https" },
+        "ogImage": { "$ref": "#/$defs/mediaSource" },
+        "noIndex": { "type": "boolean" },
+        "pages": {
+          "type": "object",
+          "properties": {
+            "home": { "$ref": "#/$defs/seo" },
+            "graphic": { "$ref": "#/$defs/seo" },
+            "webdev": { "$ref": "#/$defs/seo" },
+            "about": { "$ref": "#/$defs/seo" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "navigationItem": {
+      "type": "object",
+      "required": ["id", "label", "is_visible", "order"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "target": { "$ref": "#/$defs/text" },
+        "url": { "$ref": "#/$defs/navigationUrl" },
+        "is_visible": { "type": "boolean" },
+        "order": { "$ref": "#/$defs/order" }
+      },
+      "additionalProperties": false
+    },
+    "site": {
+      "type": "object",
+      "required": ["navigation", "socialLinks"],
+      "properties": {
+        "brandName": { "$ref": "#/$defs/text" },
+        "logoMark": { "$ref": "#/$defs/text" },
+        "trademark": { "$ref": "#/$defs/text" },
+        "contactEmail": { "$ref": "#/$defs/email" },
+        "metaTitle": { "$ref": "#/$defs/text" },
+        "metaDescription": { "$ref": "#/$defs/text" },
+        "contact": {
+          "type": "object",
+          "properties": { "email": { "$ref": "#/$defs/email" }, "phone": { "$ref": "#/$defs/text" }, "location": { "$ref": "#/$defs/text" } },
+          "additionalProperties": false
+        },
+        "navigation": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/navigationItem" } },
+        "socialLinks": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/navigationItem" } },
+        "footer": {
+          "type": "object",
+          "properties": { "eyebrow": { "$ref": "#/$defs/text" }, "tagline": { "$ref": "#/$defs/text" }, "contactLabel": { "$ref": "#/$defs/text" }, "copyright": { "$ref": "#/$defs/text" } },
+          "additionalProperties": false
+        },
+        "seo": { "$ref": "#/$defs/siteSeo" }
+      },
+      "additionalProperties": false
+    },
+    "stat": {
+      "type": "object",
+      "required": ["value", "suffix", "label"],
+      "properties": { "value": { "type": "string", "maxLength": 100 }, "suffix": { "type": "string", "maxLength": 50 }, "label": { "type": "string", "minLength": 1, "maxLength": 200 } },
+      "additionalProperties": false
+    },
+    "studio": {
+      "type": "object",
+      "properties": {
+        "heroEyebrow": { "$ref": "#/$defs/text" }, "heroTitleTop": { "$ref": "#/$defs/text" }, "heroTitleEm": { "$ref": "#/$defs/text" },
+        "heroTitleSuffix": { "$ref": "#/$defs/text" }, "heroSub": { "$ref": "#/$defs/text" }, "heroCta": { "$ref": "#/$defs/text" },
+        "heroHoverLabel": { "$ref": "#/$defs/text" }, "heroStats": { "type": "array", "maxItems": 12, "items": { "$ref": "#/$defs/stat" } },
+        "pageEyebrow": { "$ref": "#/$defs/text" }, "pageTitlePre": { "$ref": "#/$defs/text" }, "pageTitleEm": { "$ref": "#/$defs/text" },
+        "pageTitlePost": { "$ref": "#/$defs/text" }, "pageTitleSecond": { "$ref": "#/$defs/text" }, "pageLede": { "$ref": "#/$defs/text" },
+        "pageStats": { "type": "array", "maxItems": 12, "items": { "$ref": "#/$defs/stat" } },
+        "backLabel": { "$ref": "#/$defs/text" }, "crumbLabel": { "$ref": "#/$defs/text" }, "stackLabel": { "$ref": "#/$defs/text" },
+        "servicesTitle": { "$ref": "#/$defs/text" }, "servicesSubtitle": { "$ref": "#/$defs/text" }, "categoryCrumbLabel": { "$ref": "#/$defs/text" },
+        "allServicesLabel": { "$ref": "#/$defs/text" }, "workCtaLabel": { "$ref": "#/$defs/text" }, "projectCtaLabel": { "$ref": "#/$defs/text" },
+        "loadMoreLabel": { "$ref": "#/$defs/text" }, "showTechStack": { "type": "boolean" }, "showServices": { "type": "boolean" },
+        "showPortfolio": { "type": "boolean" }, "showAbout": { "type": "boolean" }, "portfolioTitle": { "$ref": "#/$defs/text" },
+        "portfolioMeta": { "$ref": "#/$defs/text" }, "servicesMeta": { "$ref": "#/$defs/text" }, "aboutEyebrow": { "$ref": "#/$defs/text" },
+        "aboutTitle": { "$ref": "#/$defs/text" }, "aboutLead": { "$ref": "#/$defs/text" }, "aboutBody": { "$ref": "#/$defs/text" },
+        "aboutPillars": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 300 } }
+      },
+      "additionalProperties": false
+    },
+    "sidedStudios": { "type": "object", "required": ["graphic", "webdev"], "properties": { "graphic": { "$ref": "#/$defs/studio" }, "webdev": { "$ref": "#/$defs/studio" } }, "additionalProperties": false },
+    "service": {
+      "type": "object",
+      "required": ["id", "name", "title", "slug", "order", "is_active"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" }, "name": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 20000 }, "slug": { "$ref": "#/$defs/routeIdentifier" },
+        "icon": { "type": "integer", "minimum": 0, "maximum": 1000 }, "icon_url": { "$ref": "#/$defs/mediaSource" }, "thumb": { "$ref": "#/$defs/text" },
+        "short_description": { "$ref": "#/$defs/text" }, "shortDescription": { "$ref": "#/$defs/text" }, "desc": { "$ref": "#/$defs/text" },
+        "order": { "$ref": "#/$defs/order" }, "num": { "$ref": "#/$defs/text" }, "is_active": { "type": "boolean" },
+        "created_at": { "$ref": "#/$defs/text" }, "updated_at": { "$ref": "#/$defs/text" }
+      },
+      "additionalProperties": false
+    },
+    "galleryImage": {
+      "type": "object",
+      "required": ["id", "project_id", "image_url", "sort_order"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" }, "project_id": { "$ref": "#/$defs/routeIdentifier" }, "image_url": { "$ref": "#/$defs/mediaSource" },
+        "caption": { "$ref": "#/$defs/text" },
+        "alt_text": { "type": "string", "maxLength": 500 }, "sort_order": { "$ref": "#/$defs/order" },
+        "created_at": { "$ref": "#/$defs/text" }, "updated_at": { "$ref": "#/$defs/text" }
+      },
+      "additionalProperties": false
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "category_id", "title", "slug", "gallery_images", "is_featured", "is_published", "sort_order"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" }, "category_id": { "$ref": "#/$defs/routeIdentifier" }, "categoryId": { "$ref": "#/$defs/routeIdentifier" },
+        "category_slug": { "$ref": "#/$defs/routeIdentifier" }, "title": { "type": "string", "minLength": 1, "maxLength": 20000 }, "slug": { "$ref": "#/$defs/routeIdentifier" },
+        "short_description": { "$ref": "#/$defs/text" }, "shortDescription": { "$ref": "#/$defs/text" }, "desc": { "$ref": "#/$defs/text" },
+        "full_description": { "$ref": "#/$defs/text" }, "fullDescription": { "$ref": "#/$defs/text" }, "description": { "$ref": "#/$defs/text" },
+        "image_url": { "$ref": "#/$defs/mediaSource" }, "image": { "$ref": "#/$defs/mediaSource" },
+        "gallery_images": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/galleryImage" } },
+        "tags": { "type": "array", "maxItems": 100, "items": { "type": "string", "maxLength": 200 } },
+        "client_name": { "$ref": "#/$defs/text" }, "clientName": { "$ref": "#/$defs/text" }, "project_date": { "$ref": "#/$defs/text" },
+        "projectDate": { "$ref": "#/$defs/text" }, "year": { "$ref": "#/$defs/text" }, "stack": { "$ref": "#/$defs/text" },
+        "is_featured": { "type": "boolean" }, "is_published": { "type": "boolean" }, "sort_order": { "$ref": "#/$defs/order" },
+        "thumb": { "$ref": "#/$defs/text" }, "pal": { "type": "integer", "minimum": 0, "maximum": 99 }, "cover_alt": { "type": "string", "maxLength": 500 },
+        "created_at": { "$ref": "#/$defs/text" }, "updated_at": { "$ref": "#/$defs/text" }
+      },
+      "additionalProperties": false
+    },
+    "work": {
+      "type": "object",
+      "required": ["id", "title", "slug", "category_id", "is_featured", "is_published", "sort_order", "gallery_images"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" }, "title": { "type": "string", "minLength": 1, "maxLength": 20000 }, "slug": { "$ref": "#/$defs/routeIdentifier" },
+        "category_id": { "$ref": "#/$defs/routeIdentifier" }, "cat": { "$ref": "#/$defs/text" }, "category": { "$ref": "#/$defs/text" },
+        "cover_image_url": { "$ref": "#/$defs/mediaSource" }, "image": { "$ref": "#/$defs/mediaSource" },
+        "short_description": { "$ref": "#/$defs/text" }, "shortDescription": { "$ref": "#/$defs/text" }, "desc": { "$ref": "#/$defs/text" },
+        "full_description": { "$ref": "#/$defs/text" }, "fullDescription": { "$ref": "#/$defs/text" }, "client_name": { "$ref": "#/$defs/text" },
+        "clientName": { "$ref": "#/$defs/text" }, "year": { "$ref": "#/$defs/text" }, "stack": { "$ref": "#/$defs/text" },
+        "is_featured": { "type": "boolean" }, "is_published": { "type": "boolean" }, "sort_order": { "$ref": "#/$defs/order" },
+        "gallery_images": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/galleryImage" } },
+        "tags": { "type": "array", "maxItems": 100, "items": { "type": "string", "maxLength": 200 } },
+        "thumb": { "$ref": "#/$defs/text" }, "pal": { "type": "integer", "minimum": 0, "maximum": 99 }, "span": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "num": { "$ref": "#/$defs/text" }, "cover_alt": { "type": "string", "maxLength": 500 }, "created_at": { "$ref": "#/$defs/text" }, "updated_at": { "$ref": "#/$defs/text" }
+      },
+      "additionalProperties": false
+    },
+    "caseStudy": {
+      "type": "object",
+      "required": ["project_id", "side", "title"],
+      "properties": {
+        "id": { "$ref": "#/$defs/routeIdentifier" }, "slug": { "$ref": "#/$defs/routeIdentifier" }, "project_id": { "$ref": "#/$defs/routeIdentifier" },
+        "side": { "enum": ["graphic", "webdev"] }, "is_published": { "type": "boolean" }, "title": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "eyebrow": { "$ref": "#/$defs/text" }, "pal": { "type": "integer", "minimum": 0, "maximum": 99 }, "thumb": { "$ref": "#/$defs/text" }, "num": { "$ref": "#/$defs/text" },
+        "cover_image_url": { "$ref": "#/$defs/mediaSource" }, "image": { "$ref": "#/$defs/mediaSource" }, "cover_alt": { "type": "string", "maxLength": 500 },
+        "client_name": { "$ref": "#/$defs/text" }, "year": { "$ref": "#/$defs/text" }, "short_description": { "$ref": "#/$defs/text" }, "full_description": { "$ref": "#/$defs/text" },
+        "gallery_images": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/galleryImage" } },
+        "side_info": { "type": "array", "maxItems": 100, "items": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/text" }, { "$ref": "#/$defs/text" }], "items": false, "minItems": 2, "maxItems": 2 } },
+        "challenge": { "$ref": "#/$defs/text" }, "pull": { "$ref": "#/$defs/text" }, "process": { "$ref": "#/$defs/text" }, "tools": { "$ref": "#/$defs/text" },
+        "results": { "type": "array", "maxItems": 100, "items": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/text" }, { "$ref": "#/$defs/text" }, { "$ref": "#/$defs/text" }], "items": false, "minItems": 3, "maxItems": 3 } },
+        "seo": { "$ref": "#/$defs/seo" }
+      },
+      "additionalProperties": false
+    },
+    "sidedServices": { "type": "object", "required": ["graphic", "webdev"], "properties": { "graphic": { "type": "array", "maxItems": 250, "items": { "$ref": "#/$defs/service" } }, "webdev": { "type": "array", "maxItems": 250, "items": { "$ref": "#/$defs/service" } } }, "additionalProperties": false },
+    "sidedProjects": { "type": "object", "required": ["graphic", "webdev"], "properties": { "graphic": { "type": "array", "maxItems": 2000, "items": { "$ref": "#/$defs/project" } }, "webdev": { "type": "array", "maxItems": 2000, "items": { "$ref": "#/$defs/project" } } }, "additionalProperties": false },
+    "sidedWorks": { "type": "object", "required": ["graphic", "webdev"], "properties": { "graphic": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/work" } }, "webdev": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/work" } } }, "additionalProperties": false }
+  }
+}

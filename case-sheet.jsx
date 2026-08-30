@@ -180,13 +180,17 @@ const CASE_DATA = {
   },
 };
 
-function findCaseWork(caseId, content, preferredSide, caseSide) {
+function findCaseWork(caseId, content, preferredSide, caseSide, allowUnpublished = false) {
   const sides = [preferredSide, caseSide, "graphic", "webdev"].filter(Boolean);
   const seen = new Set();
   for (const side of sides) {
     if (seen.has(side)) continue;
     seen.add(side);
-    const work = content?.works?.[side]?.find((item) => item.id === caseId || item.slug === caseId);
+    const work = content?.works?.[side]?.find(
+      (item) =>
+        (item.id === caseId || item.slug === caseId) &&
+        (allowUnpublished || item.is_published !== false)
+    );
     if (work) return { ...work, side };
   }
   return null;
@@ -279,11 +283,32 @@ function CaseRelatedThumb({ work, side }) {
     : <Thumb palette={palettes[work.pal] || palettes[0]} title={work.title} num={work.num || "01"} />;
 }
 
-function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
+function CaseSheet({ caseId, onClose, onNavigate, content, activeSide, allowUnpublished = false }) {
   const [loadedCaseId, setLoadedCaseId] = React.useState(null);
-  const baseData = caseId ? (content?.cases?.[caseId] || CASE_DATA[caseId]) : null;
-  const linkedWork = findCaseWork(caseId, content, activeSide, baseData?.side);
-  const data = mergeCaseWithWork(baseData || buildCaseFromWork(linkedWork), linkedWork);
+  const dialogRef = React.useRef(null);
+  const closeRef = React.useRef(null);
+  const returnFocusRef = React.useRef(null);
+  const routeWork = caseId
+    ? findCaseWork(caseId, content, activeSide, undefined, allowUnpublished)
+    : null;
+  const relatedCaseData = caseId
+    ? Object.values(content?.cases || {}).find((item) => (
+        item?.project_id === (routeWork?.id || caseId) ||
+        (routeWork?.slug && item?.project_id === routeWork.slug)
+      ))
+    : null;
+  const exactCaseData = caseId ? content?.cases?.[caseId] : null;
+  const structuredCaseData = relatedCaseData || exactCaseData || null;
+  const structuredCasePublished = allowUnpublished || structuredCaseData?.is_published !== false;
+  const baseData = structuredCasePublished
+    ? (structuredCaseData || (allowUnpublished ? CASE_DATA[caseId] : null))
+    : null;
+  const linkedWork = routeWork || findCaseWork(baseData?.project_id, content, activeSide, baseData?.side, allowUnpublished);
+  // Public routes require a structured, published case. This prevents an
+  // explicitly unpublished case from being regenerated from its work card.
+  const data = structuredCasePublished
+    ? mergeCaseWithWork(baseData || (allowUnpublished ? buildCaseFromWork(linkedWork) : null), linkedWork)
+    : null;
   const side = data?.side || linkedWork?.side || activeSide || "graphic";
   const pal = side === "graphic" ? CS_GD_PAL[data?.pal || 0] : CS_WD_PAL[data?.pal || 0];
   const Thumb = side === "graphic"
@@ -300,6 +325,44 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
     return () => clearTimeout(timer);
   }, [caseId]);
 
+  React.useEffect(() => {
+    if (!caseId) return undefined;
+    returnFocusRef.current = document.activeElement;
+    requestAnimationFrame(() => closeRef.current?.focus?.());
+
+    const onDialogKey = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+        onClose?.();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll?.(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        ) || []
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onDialogKey, true);
+    return () => {
+      window.removeEventListener("keydown", onDialogKey, true);
+      requestAnimationFrame(() => returnFocusRef.current?.focus?.());
+    };
+  }, [caseId]);
+
   const heroImage = data?.cover_image_url || data?.image || linkedWork?.cover_image_url || linkedWork?.image || "";
   const galleryImages = normalizeCaseImages(data?.gallery_images || linkedWork?.gallery_images || [], linkedWork?.id || caseId, data?.title || "Project");
   const galleryId = `case-${caseId}`;
@@ -308,7 +371,9 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
   const clientName = data?.client_name || linkedWork?.client_name || caseInfoValue(data?.side_info, "Client");
   const shortDescription = data?.short_description || linkedWork?.short_description || data?.pull || "";
   const fullDescription = data?.full_description || linkedWork?.full_description || "";
-  const sideWorks = (content?.works?.[side] || []).filter(work => work.is_published !== false);
+  const sideWorks = (content?.works?.[side] || []).filter(
+    (work) => allowUnpublished || work.is_published !== false
+  );
   const currentWorkIndex = sideWorks.findIndex(work => work.id === linkedWork?.id || work.id === caseId || work.slug === caseId);
   const prevWork = currentWorkIndex > 0 ? sideWorks[currentWorkIndex - 1] : null;
   const nextWork = currentWorkIndex >= 0 && currentWorkIndex < sideWorks.length - 1 ? sideWorks[currentWorkIndex + 1] : null;
@@ -321,10 +386,18 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
     onNavigate({ ...work, side });
   };
 
-  if (!caseId || !data) return null;
+  // A public case must be backed by a published work item. Standalone case
+  // records and source fallbacks are available only inside authorized preview.
+  if (!caseId || !data || (!allowUnpublished && !linkedWork)) return null;
 
   return (
-    <div className={"case-sheet " + (side === "webdev" ? "webdev " : "") + (caseId ? "open" : "")}>
+    <div
+      ref={dialogRef}
+      className={"case-sheet " + (side === "webdev" ? "webdev " : "") + (caseId ? "open" : "")}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${data.title} case study`}
+    >
       <div className="case-scroll">
         <div className="case-head">
           <div className="left">
@@ -336,7 +409,7 @@ function CaseSheet({ caseId, onClose, onNavigate, content, activeSide }) {
               {clientName && <span>{clientName}</span>}
             </div>
           </div>
-          <button className="case-close" onClick={onClose}><CsClose size={12} sw={2} />Close case</button>
+          <button ref={closeRef} type="button" className="case-close" onClick={onClose}><CsClose size={12} sw={2} />Close case</button>
         </div>
 
         {loadedCaseId !== caseId ? (

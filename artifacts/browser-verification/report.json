@@ -1,0 +1,1900 @@
+{
+  "generatedAt": "2026-08-29T21:14:23.898Z",
+  "build": {
+    "mode": "local-only browser verification",
+    "siteOrigin": "http://127.0.0.1:4308",
+    "backendOrigin": "http://127.0.0.1:4309",
+    "adminEnabled": true,
+    "noIndex": false,
+    "realEnvironmentUsed": false,
+    "ownerFixture": "served from verifier memory only; not written to dist",
+    "distState": "LOCAL-ONLY VERIFICATION BUILD — rebuild with the intended deployment environment before release"
+  },
+  "summary": {
+    "passed": true,
+    "scenarios": 20,
+    "screenshots": 20,
+    "blockedExternalRequests": 2,
+    "localBackendRequests": 0,
+    "failures": 0,
+    "warnings": 0
+  },
+  "blockedExternalRequests": [
+    "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@400;500&family=Archivo:wght@500;700;800&family=Inter+Tight:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Serif&display=swap",
+    "https://api.github.com/users/Sajid777Officials/repos?sort=updated&per_page=30&type=public"
+  ],
+  "localBackendRequests": [],
+  "failures": [],
+  "warnings": [],
+  "results": [
+    {
+      "kind": "public",
+      "route": "home",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\home-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/",
+        "pathname": "/",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 403,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 6,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "graphic",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\graphic-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/graphic",
+        "pathname": "/graphic",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 403,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 19,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/graphic",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "webdev",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\webdev-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/webdev",
+        "pathname": "/webdev",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Software Development",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 375,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [
+          {
+            "tag": "div",
+            "className": "tech-rail-stack",
+            "left": 96,
+            "right": 1805
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 302,
+            "right": 393
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 415,
+            "right": 421
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 443,
+            "right": 514
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 536,
+            "right": 542
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 564,
+            "right": 630
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 652,
+            "right": 658
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 680,
+            "right": 717
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 739,
+            "right": 745
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 767,
+            "right": 829
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 851,
+            "right": 857
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 879,
+            "right": 953
+          }
+        ],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 16,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/webdev",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "about",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\about-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/about",
+        "pathname": "/about",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - About Us",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 403,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 22,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/about",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - About Us",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": true
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "home",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\home-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/",
+        "pathname": "/",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 796,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 6,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "graphic",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\graphic-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/graphic",
+        "pathname": "/graphic",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 796,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 20,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/graphic",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "webdev",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\webdev-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/webdev",
+        "pathname": "/webdev",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Software Development",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 768,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [
+          {
+            "tag": "div",
+            "className": "tech-rail-stack",
+            "left": 96,
+            "right": 1805
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 767,
+            "right": 829
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 851,
+            "right": 857
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 879,
+            "right": 953
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 975,
+            "right": 981
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1003,
+            "right": 1093
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1115,
+            "right": 1121
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1143,
+            "right": 1225
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1247,
+            "right": 1253
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1275,
+            "right": 1326
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1348,
+            "right": 1354
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1376,
+            "right": 1433
+          }
+        ],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 16,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/webdev",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "about",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\about-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/about",
+        "pathname": "/about",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - About Us",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 796,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 22,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/about",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - About Us",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": true
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "home",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\home-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/",
+        "pathname": "/",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 10,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "graphic",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\graphic-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/graphic",
+        "pathname": "/graphic",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 24,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/graphic",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "webdev",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\webdev-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/webdev",
+        "pathname": "/webdev",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Software Development",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [
+          {
+            "tag": "div",
+            "className": "tech-rail-stack",
+            "left": 129,
+            "right": 2463
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1370,
+            "right": 1464
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1506,
+            "right": 1511
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1553,
+            "right": 1639
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1681,
+            "right": 1685
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1727,
+            "right": 1781
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1823,
+            "right": 1827
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 1869,
+            "right": 1929
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 1971,
+            "right": 1975
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 2017,
+            "right": 2087
+          },
+          {
+            "tag": "span",
+            "className": "dot",
+            "left": 2129,
+            "right": 2133
+          },
+          {
+            "tag": "span",
+            "className": "",
+            "left": 2175,
+            "right": 2232
+          }
+        ],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 20,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/webdev",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Software Development",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "public",
+      "route": "about",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\about-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/about",
+        "pathname": "/about",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - About Us",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 26,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/about",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - About Us",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": true
+      },
+      "console": {
+        "errors": [],
+        "warnings": [],
+        "browserErrors": [],
+        "exceptions": [],
+        "loadingFailures": [
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          },
+          {
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+            "blockedReason": "inspector",
+            "canceled": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "legacy",
+      "route": "#graphic",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\legacy-graphic-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/#graphic",
+        "pathname": "/",
+        "hash": "#graphic",
+        "title": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 1
+        },
+        "accessibility": {
+          "visibleInteractive": 24,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": []
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/graphic",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Graphic Design",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "body",
+          "className": "",
+          "name": "VRAISA StudioTMHomeGraphic DesignSoftware DevAbout UsAdmin01 - Discipline AGraphicdesign.Identity, print, packaging and editorial work for founders who want their brand to look like it means business.Packaging DesignFlyer DesignVector ArtVector TracingPoster DesignFile ConversionEmbroidery DigitizingBusiness CardsSocial Media PostsPresentationsEnter Graphic Studio120+Brands shipped06yIn practiceClick to enter/02 - Discipline BSoftwareDevelopment.Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last.Website DesignSoftware DevelopmentLanding PagesPortfolio SitesBusiness WebsitesE-commerceApp DevelopmentUI / UX DesignFrontendBackendEnter Software Studio84+Sites launched99%Lighthouse avg.Click to enterPackaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Packaging Design·Flyer Design·Vector Art·Vector Tracing·Poster Design·File Conversion·Embroidery Digitizing·Business Cards·Social Media Posts·Presentations·Website Design·Software Development·Landing Pages·Portfolio Sites·Business Websites·E-commerce·App Development·UI / UX Design·Frontend·Backend·Back to heroIndex / Studio A - Graphic DesignStudio A - Graphic DesignBrands, builtto be looked at.Ten focused disciplines - from packaging dielines to a deck that closes the round - delivered with print-ready files and a process you can stand behind.120+Projects delivered38Active clients06yIn practiceServices / ten disciplinesClick a category to brief us01Packaging DesignBoxes, labels, tins, sleeves - dielines included.02Flyer DesignSingle-page promos engineered to be read in 3 seconds.03Vector ArtOriginal illustration in crisp, scalable vector.04Vector TracingRaster logos rebuilt as production-grade vectors.05Poster DesignTypographic posters for events, films and brands.06File ConversionAI, PSD, PDF, SVG, EPS - clean handoffs.07Embroidery DigitizingDST, PES, EXP files for stitch-perfect output.08Business CardsFoil, letterpress, soft-touch - the full menu.09Social Media PostsReels covers, carousels and grids that hold attention.10PresentationsInvestor decks, pitch books and sales documents.6 projectsSelected work06 of 120 - Click for caseSorrel&N° 04Packaging - Botanical TeaPackaging - Botanical TeaSorrel & StoneView case Sorrel & StonePackaging - Botanical Tea2025Northwind Festival26Vol·26Poster SeriesPoster SeriesNorthwind FestivalView case Northwind FestivalPoster Series2025AAtlas RoasteryBrand IdentityBrand IdentityAtlas RoasteryView case Atlas RoasteryBrand Identity2024MMarlow & Co.Stationery SystemStationery SystemMarlow & Co.View case Marlow & Co.Stationery System2024Hoshi01→•Social Media SuiteSocial Media SuiteHoshi SkincareView case Hoshi SkincareSocial Media Suite2024Ember Films07Vol·26Title SequenceTitle SequenceEmber FilmsView case Ember FilmsTitle Sequence2024About usA focused studio for brands that need to look intentional everywhere.RAISA Studio blends graphic design, production discipline and digital thinking for founders, teams and independent brands.We shape identity systems, packaging, print materials and campaign assets with a practical process: clear direction first, polished execution next, and files prepared for the people who have to use them after launch.Brand systemsPrint-ready craftLaunch supportGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved.Back to heroIndex / Studio B - Software DevelopmentStudio B - Software DevelopmentSites that loadand sites that sell.From a one-screen landing page to a typed, indexed e-commerce platform - we ship production code with measurable performance and a tidy handoff.84+Sites launched99%Lighthouse avg.12dAvg. time to launchStack -ReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelReactNext.jsTypeScriptTailwindNode.jsPHPMySQLPostgresMongoDBExpress.jsKotlinFlutterShopifyFigmaVercelServices / ten disciplinesClick a category to scope work01Website DesignMarketing sites engineered for clarity and conversion.02Software DevelopmentCustom platforms, dashboards, and product workflows.03Landing PagesOne-screen pitches optimized for paid traffic.04Portfolio SitesQuiet, fast portfolios that put work first.05Business WebsitesMulti-page sites with CMS and lead capture.06E-commerceShopify, WooCommerce and custom checkout flows.07App DevelopmentReact Native, Flutter and Kotlin apps shipped to stores.08UI / UX DesignWireframes, prototypes and design systems.09FrontendReact, Next.js, Tailwind and TypeScript interfaces.10BackendNode, PHP, MySQL, Postgres, REST and GraphQL.6 projectsSelected builds06 of 84 - Click for caseHaloRevenue$ 84KWeb App - FintechWeb App - FintechHalo BankNext.js - TS - PostgresView build Halo BankWeb App - FintechNext.js - TS - Postgres2025Pinecrest// localhost:3000Marketing SiteMarketing SitePinecrest RealtyNext.js - SanityView build Pinecrest RealtyMarketing SiteNext.js - Sanity2025Loom// localhost:3000E-commerceE-commerceLoom & FieldShopify HydrogenView build Loom & FieldE-commerceShopify Hydrogen20240102030405060708OpenDeveloper ToolDeveloper ToolOpen Atlas APINode - GraphQLView build Open Atlas APIDeveloper ToolNode - GraphQL2024Northwind// localhost:3000PortfolioPortfolioNorthwind StudioAstro - MDXView build Northwind StudioPortfolioAstro - MDX2024Ledger.ioRevenue$ 84KSaaS DashboardSaaS DashboardLedger.ioReact - TailwindView build Ledger.ioSaaS DashboardReact - Tailwind2024About usA software studio for fast, usable products that keep working after launch.RAISA Studio builds marketing sites, web apps and storefronts with the same care we bring to visual systems.We focus on readable interfaces, production-ready code and practical handoff, so your site can be updated, measured and improved without starting over every time the business moves.Fast interfacesStable backendsClean handoffGraphic design x software developmentThoughtful identities and production-ready digital products, built under one roof.Start a projectGitHubhello@raisastudio.comAvailable worldwide© 2026 RAISA Studio. All rights reserved. This portfolio needs JavaScript enabled to run the interactive split-screen experience.",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      }
+    },
+    {
+      "kind": "case-study",
+      "route": "graphic/g1",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\case-study-desktop-1440x900.png",
+      "fixture": {
+        "caseCount": 24,
+        "caseIds": [
+          "g1",
+          "sorrel-and-stone",
+          "g2",
+          "northwind-festival",
+          "g3",
+          "atlas-roastery",
+          "g4",
+          "marlow-and-co",
+          "g5",
+          "hoshi-skincare",
+          "g6",
+          "ember-films"
+        ],
+        "workId": "g1",
+        "workSlug": "sorrel-and-stone"
+      },
+      "state": {
+        "url": "http://127.0.0.1:4308/graphic/g1",
+        "pathname": "/graphic/g1",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Sorrel & Stone Case Study",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 1,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 27,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Sorrel & Stone case study"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "index, follow",
+          "canonical": "http://127.0.0.1:4308/graphic/sorrel-and-stone",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Sorrel & Stone Case Study",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "CreativeWork"
+        },
+        "activeElement": {
+          "tag": "button",
+          "className": "case-close",
+          "name": "Close case",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "dialog": {
+        "label": "Sorrel & Stone case study",
+        "closeFocused": true
+      }
+    },
+    {
+      "kind": "admin-login",
+      "route": "admin",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-login-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 403,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 11,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "input",
+          "className": "",
+          "name": "Email",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "form": {
+        "form": true,
+        "emailLabel": "Email",
+        "passwordLabel": "PasswordShow",
+        "passwordType": "password",
+        "submitText": "Sign in securely",
+        "submitEnabled": true
+      }
+    },
+    {
+      "kind": "admin-login",
+      "route": "admin",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-login-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 796,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 11,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "input",
+          "className": "",
+          "name": "Email",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "form": {
+        "form": true,
+        "emailLabel": "Email",
+        "passwordLabel": "PasswordShow",
+        "passwordType": "password",
+        "submitText": "Sign in securely",
+        "submitEnabled": true
+      }
+    },
+    {
+      "kind": "admin-login",
+      "route": "admin",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-login-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 1,
+          "main": 1,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 15,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "input",
+          "className": "",
+          "name": "Email",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "form": {
+        "form": true,
+        "emailLabel": "Email",
+        "passwordLabel": "PasswordShow",
+        "passwordType": "password",
+        "submitText": "Sign in securely",
+        "submitEnabled": true
+      }
+    },
+    {
+      "kind": "admin-owner-mock",
+      "route": "admin",
+      "viewport": {
+        "name": "mobile-375x812",
+        "width": 375,
+        "height": 812
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-owner-mobile-375x812.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin?browserMock=owner",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 375,
+          "height": 812,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 375,
+          "bodyScrollWidth": 403,
+          "rootClientWidth": 375
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [
+          {
+            "tag": "button",
+            "className": "",
+            "left": 346,
+            "right": 494
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 502,
+            "right": 591
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 519,
+            "right": 531
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 599,
+            "right": 710
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 616,
+            "right": 630
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 718,
+            "right": 820
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 735,
+            "right": 746
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 828,
+            "right": 907
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 845,
+            "right": 852
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 915,
+            "right": 995
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 932,
+            "right": 939
+          }
+        ],
+        "landmarks": {
+          "header": 1,
+          "nav": 2,
+          "main": 2,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 31,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "button",
+          "className": "active",
+          "name": "⌂Dashboard",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "shell": {
+        "mockActive": true,
+        "shell": true,
+        "sidebar": true,
+        "main": true,
+        "ownerLabel": true,
+        "dashboardLabel": true,
+        "draftStatus": true,
+        "publishedStatus": true,
+        "publishedCounts": [
+          "Published snapshot: 20",
+          "Published snapshot: 20",
+          "Published snapshot: 12",
+          "Published snapshot: 12"
+        ],
+        "activityItems": 2,
+        "shellWidth": 375
+      }
+    },
+    {
+      "kind": "admin-owner-mock",
+      "route": "admin",
+      "viewport": {
+        "name": "tablet-768x1024",
+        "width": 768,
+        "height": 1024
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-owner-tablet-768x1024.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin?browserMock=owner",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 768,
+          "height": 1024,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 768,
+          "bodyScrollWidth": 796,
+          "rootClientWidth": 768
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": true,
+        "viewportOffenders": [
+          {
+            "tag": "button",
+            "className": "",
+            "left": 718,
+            "right": 820
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 828,
+            "right": 907
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 845,
+            "right": 852
+          },
+          {
+            "tag": "button",
+            "className": "",
+            "left": 915,
+            "right": 995
+          },
+          {
+            "tag": "span",
+            "className": "admin-tab-icon",
+            "left": 932,
+            "right": 939
+          }
+        ],
+        "landmarks": {
+          "header": 1,
+          "nav": 2,
+          "main": 2,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 31,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "button",
+          "className": "active",
+          "name": "⌂Dashboard",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "shell": {
+        "mockActive": true,
+        "shell": true,
+        "sidebar": true,
+        "main": true,
+        "ownerLabel": true,
+        "dashboardLabel": true,
+        "draftStatus": true,
+        "publishedStatus": true,
+        "publishedCounts": [
+          "Published snapshot: 20",
+          "Published snapshot: 20",
+          "Published snapshot: 12",
+          "Published snapshot: 12"
+        ],
+        "activityItems": 2,
+        "shellWidth": 768
+      }
+    },
+    {
+      "kind": "admin-owner-mock",
+      "route": "admin",
+      "viewport": {
+        "name": "desktop-1440x900",
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "artifacts\\browser-verification\\admin-owner-desktop-1440x900.png",
+      "state": {
+        "url": "http://127.0.0.1:4308/admin?browserMock=owner",
+        "pathname": "/admin",
+        "hash": "",
+        "title": "RAISA Studio - Graphic Design x Software Development - Admin",
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1
+        },
+        "documentSize": {
+          "rootScrollWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "rootClientWidth": 1440
+        },
+        "horizontalOverflow": false,
+        "bodyOverflowClipped": false,
+        "viewportOffenders": [],
+        "landmarks": {
+          "header": 1,
+          "nav": 2,
+          "main": 2,
+          "footer": 0,
+          "h1": 2
+        },
+        "accessibility": {
+          "visibleInteractive": 35,
+          "missingNames": [],
+          "missingImageAlt": 0,
+          "duplicateIds": [],
+          "dialogs": [
+            {
+              "modal": "true",
+              "label": "Admin Panel"
+            }
+          ]
+        },
+        "metadata": {
+          "description": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "keywords": "",
+          "robots": "noindex, nofollow",
+          "canonical": "http://127.0.0.1:4308/",
+          "ogTitle": "RAISA Studio - Graphic Design x Software Development - Admin",
+          "ogDescription": "A split-discipline portfolio for graphic design, branding, websites, web apps, and production-ready digital work.",
+          "structuredDataValid": true,
+          "structuredDataType": "Organization"
+        },
+        "activeElement": {
+          "tag": "button",
+          "className": "active",
+          "name": "⌂Dashboard",
+          "focusVisible": false
+        },
+        "aboutInView": false
+      },
+      "shell": {
+        "mockActive": true,
+        "shell": true,
+        "sidebar": true,
+        "main": true,
+        "ownerLabel": true,
+        "dashboardLabel": true,
+        "draftStatus": true,
+        "publishedStatus": true,
+        "publishedCounts": [
+          "Published snapshot: 20",
+          "Published snapshot: 20",
+          "Published snapshot: 12",
+          "Published snapshot: 12"
+        ],
+        "activityItems": 2,
+        "shellWidth": 1180
+      }
+    }
+  ]
+}

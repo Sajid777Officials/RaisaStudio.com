@@ -1,31 +1,125 @@
 // Shared header + portfolio thumbnail generators
 const { ArrowRight, ArrowLeft, ArrowOut, Close, Lock } = window.PortfolioIcons;
 
+function sharedSafeExternalUrl(value) {
+  const normalized = String(value || "").trim();
+  if (!/^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?::[1-9][0-9]{0,4})?(?:\/[^\s\\]*)?$/.test(normalized)) {
+    return "";
+  }
+  try {
+    const parsed = new URL(normalized);
+    return parsed.protocol === "https:" && !parsed.username && !parsed.password
+      ? parsed.href
+      : "";
+  } catch (_) {
+    return "";
+  }
+}
+
 function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAbout, onAdmin, site, expanded, activeSection }) {
   const brand = site?.brandName || "RAISA Studio";
   const mark = site?.logoMark || "V";
   const trademark = site?.trademark || "";
+  const navigation = (site?.navigation || [
+    { id: "home", label: "Home", target: "home", is_visible: true },
+    { id: "graphic", label: "Graphic Design", target: "graphic", is_visible: true },
+    { id: "webdev", label: "Software Dev", target: "webdev", is_visible: true },
+    { id: "about", label: "About Us", target: "about", is_visible: true },
+  ]).filter((item) => item.is_visible !== false);
+  const handlers = {
+    home: onHome,
+    graphic: onGraphic,
+    webdev: onWebdev,
+    about: onAbout,
+    contact: onContact,
+  };
+  const isActive = (target) => (
+    (target === "home" && !expanded && activeSection !== "about") ||
+    (target === "graphic" && expanded === "graphic" && activeSection !== "about") ||
+    (target === "webdev" && expanded === "webdev" && activeSection !== "about") ||
+    (target === "about" && activeSection === "about")
+  );
+
   return (
-    <div className={"nav" + (onDark ? " on-dark" : "") + (onSplit ? " on-split" : "")}>
-      <div className="nav-logo" onClick={onHome} style={{ cursor: "pointer" }}>
+    <header className={"nav" + (onDark ? " on-dark" : "") + (onSplit ? " on-split" : "")}>
+      <button type="button" className="nav-logo" onClick={onHome} aria-label={`Return to ${brand} home`}>
         <div className="logo-mark">{mark}</div>
         <div>{brand}<span style={{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontWeight: 400, marginLeft: 6, opacity: 0.6 }}>{trademark}</span></div>
-      </div>
-      <nav className="nav-links">
-        <a onClick={onHome} className={!expanded ? "active" : ""}>Home</a>
-        <a onClick={onGraphic} className={expanded === "graphic" && activeSection !== "about" ? "active" : ""}>Graphic Design</a>
-        <a onClick={onWebdev} className={expanded === "webdev" && activeSection !== "about" ? "active" : ""}>Software Dev</a>
-        <a onClick={onAbout} className={activeSection === "about" ? "active" : ""}>About Us</a>
+      </button>
+      <nav className="nav-links" aria-label="Primary navigation">
+        {navigation.map((item) => {
+          const externalUrl = item.target === "external" ? sharedSafeExternalUrl(item.url) : "";
+          if (externalUrl) {
+            return (
+              <a key={item.id || item.label} href={externalUrl} target="_blank" rel="noopener noreferrer">
+                {item.label}
+              </a>
+            );
+          }
+          return (
+            <button
+              type="button"
+              key={item.id || item.label}
+              onClick={handlers[item.target] || onHome}
+              className={isActive(item.target) ? "active" : ""}
+              aria-current={isActive(item.target) ? "page" : undefined}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {onAdmin && (
-          <button className="nav-admin-btn" onClick={onAdmin} title="Open admin panel">
+          <button type="button" className="nav-admin-btn" onClick={onAdmin} title="Open admin panel">
             <Lock size={13} sw={2.2} />
             Admin
           </button>
         )}
       </div>
-    </div>
+    </header>
+  );
+}
+
+function PortfolioFooter({ site, onContact, dark = false }) {
+  const footer = site?.footer || {};
+  const contact = site?.contact || {};
+  const email = String(contact.email || site?.contactEmail || "").trim();
+  const phone = String(contact.phone || "").trim();
+  const phoneHref = phone ? `tel:${phone.replace(/[^\d+]/g, "")}` : "";
+  const location = String(contact.location || "").trim();
+  const socialLinks = (site?.socialLinks || [])
+    .map((item) => ({ ...item, safeUrl: sharedSafeExternalUrl(item.url) }))
+    .filter((item) => item.is_visible !== false && item.safeUrl);
+  return (
+    <footer className={"portfolio-footer" + (dark ? " dark" : "")}>
+      <div>
+        <div className="portfolio-footer-eyebrow">{footer.eyebrow || "Graphic design x software development"}</div>
+        <h2>{footer.tagline || "Thoughtful identities and production-ready digital products, built under one roof."}</h2>
+      </div>
+      <div className="portfolio-footer-actions">
+        <button type="button" onClick={onContact}>{footer.contactLabel || "Start a project"}</button>
+        {socialLinks.length > 0 && (
+          <div className="portfolio-footer-socials">
+            {socialLinks.map((item) => (
+              <a key={item.id || item.label} href={item.safeUrl} target="_blank" rel="noopener noreferrer">
+                {item.label}
+              </a>
+            ))}
+          </div>
+        )}
+        {(email || phone || location) && (
+          <address className="portfolio-footer-contact">
+            {email && <a href={`mailto:${email}`}>{email}</a>}
+            {phone && <a href={phoneHref}>{phone}</a>}
+            {location && <span>{location}</span>}
+          </address>
+        )}
+      </div>
+      <div className="portfolio-footer-copy">
+        © {new Date().getFullYear()} {footer.copyright || `${site?.brandName || "RAISA Studio"}. All rights reserved.`}
+      </div>
+    </footer>
   );
 }
 
@@ -168,6 +262,7 @@ const WEBDEV_PALETTES = [
 
 window.PortfolioShared = {
   Nav,
+  Footer: PortfolioFooter,
   thumbs: {
     Packaging: ThumbPackaging,
     Poster: ThumbPoster,

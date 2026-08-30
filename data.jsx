@@ -7,21 +7,21 @@
   };
 
   const DEFAULT_GRAPHIC = [
-    { id:'g1', title:'Sorrel & Stone',    cat:'Packaging · Botanical Tea', year:'2025', thumb:'Packaging', pal:0, span:6 },
-    { id:'g2', title:'Northwind Festival',cat:'Poster Series',             year:'2025', thumb:'Poster',    pal:1, span:3, num:'26' },
-    { id:'g3', title:'Atlas Roastery',    cat:'Brand Identity',            year:'2024', thumb:'Brand',     pal:2, span:3 },
-    { id:'g4', title:'Marlow & Co.',      cat:'Stationery System',         year:'2024', thumb:'Brand',     pal:3, span:4 },
-    { id:'g5', title:'Hoshi Skincare',    cat:'Social Media Suite',        year:'2024', thumb:'Social',    pal:4, span:4 },
-    { id:'g6', title:'Ember Films',       cat:'Title Sequence',            year:'2024', thumb:'Poster',    pal:5, span:4, num:'07' },
+    { id:'g1', category_id:'packaging-design', title:'Sorrel & Stone',    cat:'Packaging · Botanical Tea', year:'2025', thumb:'Packaging', pal:0, span:6 },
+    { id:'g2', category_id:'poster-design', title:'Northwind Festival',cat:'Poster Series',             year:'2025', thumb:'Poster',    pal:1, span:3, num:'26' },
+    { id:'g3', category_id:'vector-art', title:'Atlas Roastery',    cat:'Brand Identity',            year:'2024', thumb:'Brand',     pal:2, span:3 },
+    { id:'g4', category_id:'business-cards', title:'Marlow & Co.',      cat:'Stationery System',         year:'2024', thumb:'Brand',     pal:3, span:4 },
+    { id:'g5', category_id:'social-media-posts', title:'Hoshi Skincare',    cat:'Social Media Suite',        year:'2024', thumb:'Social',    pal:4, span:4 },
+    { id:'g6', category_id:'poster-design', title:'Ember Films',       cat:'Title Sequence',            year:'2024', thumb:'Poster',    pal:5, span:4, num:'07' },
   ];
 
   const DEFAULT_WEBDEV = [
-    { id:'w1', title:'Halo Bank',         cat:'Web App · Fintech',  year:'2025', stack:'Next.js · TS · Postgres', thumb:'Dashboard', pal:0, span:6 },
-    { id:'w2', title:'Pinecrest Realty',  cat:'Marketing Site',     year:'2025', stack:'Next.js · Sanity',         thumb:'WebApp',    pal:1, span:3 },
-    { id:'w3', title:'Loom & Field',      cat:'E-commerce',         year:'2024', stack:'Shopify Hydrogen',         thumb:'WebApp',    pal:2, span:3 },
-    { id:'w4', title:'Open Atlas API',    cat:'Developer Tool',     year:'2024', stack:'Node · GraphQL',           thumb:'Code',      pal:3, span:4 },
-    { id:'w5', title:'Northwind Studio',  cat:'Portfolio',          year:'2024', stack:'Astro · MDX',              thumb:'WebApp',    pal:4, span:4 },
-    { id:'w6', title:'Ledger.io',         cat:'SaaS Dashboard',     year:'2024', stack:'React · Tailwind',         thumb:'Dashboard', pal:5, span:4 },
+    { id:'w1', category_id:'software-development', title:'Halo Bank',         cat:'Web App · Fintech',  year:'2025', stack:'Next.js · TS · Postgres', thumb:'Dashboard', pal:0, span:6 },
+    { id:'w2', category_id:'business-websites', title:'Pinecrest Realty',  cat:'Marketing Site',     year:'2025', stack:'Next.js · Sanity',         thumb:'WebApp',    pal:1, span:3 },
+    { id:'w3', category_id:'e-commerce', title:'Loom & Field',      cat:'E-commerce',         year:'2024', stack:'Shopify Hydrogen',         thumb:'WebApp',    pal:2, span:3 },
+    { id:'w4', category_id:'backend', title:'Open Atlas API',    cat:'Developer Tool',     year:'2024', stack:'Node · GraphQL',           thumb:'Code',      pal:3, span:4 },
+    { id:'w5', category_id:'portfolio-sites', title:'Northwind Studio',  cat:'Portfolio',          year:'2024', stack:'Astro · MDX',              thumb:'WebApp',    pal:4, span:4 },
+    { id:'w6', category_id:'frontend', title:'Ledger.io',         cat:'SaaS Dashboard',     year:'2024', stack:'React · Tailwind',         thumb:'Dashboard', pal:5, span:4 },
   ];
 
   const DEFAULT_CASES = {

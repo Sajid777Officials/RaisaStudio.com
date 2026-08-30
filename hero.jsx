@@ -242,6 +242,7 @@ function HeroPanel({ side, panelClass, extraClass, isExpanded, onEnter, onLeave,
     : "Engineered websites, web apps and storefronts. Type-safe, fast, search-friendly - built to convert and built to last."
   );
   const cta      = studio.heroCta  || (side === "graphic" ? "Enter Graphic Studio" : "Enter Software Studio");
+  const hoverLabel = studio.heroHoverLabel || "Click to enter";
   const tagClass = side === "graphic" ? "tag-red" : "tag-line";
 
   return (
@@ -251,6 +252,15 @@ function HeroPanel({ side, panelClass, extraClass, isExpanded, onEnter, onLeave,
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (!isExpanded && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onExpand();
+        }
+      }}
+      role="region"
+      tabIndex={isExpanded ? -1 : 0}
+      aria-label={`${titleTop} ${titleEm}. ${cta}`}
     >
       {/* navy dots on cream (graphic) · cream dots on navy (webdev) */}
       {side === "graphic" && <PanelParticles panelRef={panelRef} r={11}  g={27}  b={58}  />}
@@ -292,21 +302,22 @@ function HeroPanel({ side, panelClass, extraClass, isExpanded, onEnter, onLeave,
           </div>
         </div>
       </div>
-      <div className="hover-tag"><span className="pulse"></span>Click to enter</div>
+      <div className="hover-tag"><span className="pulse"></span>{hoverLabel}</div>
     </div>
   );
 }
 
 // ── Marquee strip spanning both panels ───────────────────────────────────────
-const ALL_SERVICES = [...GRAPHIC_SERVICES, ...WEBDEV_SERVICES];
-
-function HeroMarquee() {
+function HeroMarquee({ services }) {
+  const marqueeServices = services?.length
+    ? services
+    : [...GRAPHIC_SERVICES, ...WEBDEV_SERVICES];
   return (
     <div className="hero-marquee" aria-hidden="true">
       <div className="hero-marquee-track">
         {[0, 1].map(copy => (
           <div key={copy} className="hero-marquee-inner">
-            {ALL_SERVICES.map((s, i) => (
+            {marqueeServices.map((s, i) => (
               <React.Fragment key={`${copy}-${i}`}>
                 <span>{s}</span>
                 <span className="hero-marquee-sep">·</span>
@@ -344,7 +355,12 @@ function Hero({ hovered, setHovered, expanded, onExpand, content }) {
   ];
 
   return (
-    <div className={"hero" + (isExpanded ? " expanded" : "")}>
+    <div
+      className={"hero" + (isExpanded ? " expanded" : "")}
+      role={isExpanded ? undefined : "main"}
+      aria-hidden={isExpanded ? "true" : undefined}
+      inert={isExpanded ? "" : undefined}
+    >
       <HeroPanel
         side="graphic"
         panelClass="panel-graphic"
@@ -388,7 +404,7 @@ function Hero({ hovered, setHovered, expanded, onExpand, content }) {
         stats={webdevStats}
         accentColor="var(--amber)"
       />
-      <HeroMarquee />
+      <HeroMarquee services={[...graphicServices, ...webdevServices]} />
     </div>
   );
 }
