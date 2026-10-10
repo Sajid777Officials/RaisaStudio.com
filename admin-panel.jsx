@@ -24,6 +24,7 @@ const ADMIN_MEDIA_TYPES = {
   "image/webp": "webp",
   "image/gif": "gif",
 };
+const ADMIN_MEDIA_LIMITS_LABEL = "PNG, JPG, WebP, GIF · up to 3 MiB each · 6,000 px per edge · 12 megapixels. Animations: up to 120 frames and 24 megapixels total.";
 const ADMIN_MEDIA_TOKEN_PATTERN = /^media:\/\/([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 const ADMIN_MEDIA_PERMISSIONS = React.createContext({
   canUpload: false,
@@ -67,6 +68,35 @@ function adminImageSignatureMatches(bytes, mimeType) {
       && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
   }
   return false;
+}
+
+// Preserve animations when preparing uploads; only static images are cropped.
+function adminImageHasAnimation(bytes, mimeType) {
+  if (mimeType === "image/gif") return true;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = mimeType === "image/png" ? 8 : 12;
+  while (offset + 8 <= bytes.length) {
+    const png = mimeType === "image/png";
+    const typeOffset = png ? offset + 4 : offset;
+    const chunkType = String.fromCharCode(...bytes.slice(typeOffset, typeOffset + 4));
+    if ((png && chunkType === "acTL") || (!png && chunkType === "ANIM")) return true;
+    const length = view.getUint32(png ? offset : offset + 4, !png);
+    offset += png ? 12 + length : 8 + length + (length % 2);
+  }
+  return false;
+}
+
+function adminFilterMedia(records, query = "", status = "all", type = "all") {
+  const terms = String(query).trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  return records.filter((record) => {
+    const isPublished = record.status === "published" || record.status === "legacy";
+    if (status === "published" && !isPublished) return false;
+    if (status === "draft" && isPublished) return false;
+    if (type !== "all" && record.mime_type !== type) return false;
+    const searchable = [record.name, record.alt_text, record.mime_type, record.reference_token]
+      .join(" ").toLocaleLowerCase();
+    return terms.every((term) => searchable.includes(term));
+  });
 }
 
 async function adminDecodeImageDimensions(file) {
@@ -119,11 +149,17 @@ async function adminInspectImageFile(file) {
     throw new Error("The image dimensions are too large. Use at most 6,000 px per edge and 12 megapixels.");
   }
 
-  return { width, height, mimeType: file.type, size: file.size };
+  const animated = file.type === "image/gif" || ((file.type === "image/png" || file.type === "image/webp")
+    && adminImageHasAnimation(new Uint8Array(await file.arrayBuffer()), file.type));
+  return { width, height, mimeType: file.type, size: file.size, animated };
 }
 
 async function adminCropImageFile(file, targetAspect, focusX, focusY) {
   if (!targetAspect || targetAspect === "original" || file.type === "image/gif") return file;
+  if ((file.type === "image/png" || file.type === "image/webp")
+    && adminImageHasAnimation(new Uint8Array(await file.arrayBuffer()), file.type)) return file;
+  const aspect = Number(targetAspect);
+  if (!Number.isFinite(aspect) || aspect <= 0) throw new Error("Choose a valid crop aspect ratio.");
 
   const bitmap = typeof createImageBitmap === "function"
     ? await createImageBitmap(file)
@@ -142,7 +178,6 @@ async function adminCropImageFile(file, targetAspect, focusX, focusY) {
       });
   const sourceWidth = bitmap.width;
   const sourceHeight = bitmap.height;
-  const aspect = Number(targetAspect);
   let cropWidth = sourceWidth;
   let cropHeight = sourceHeight;
 
@@ -162,6 +197,10 @@ async function adminCropImageFile(file, targetAspect, focusX, focusY) {
   canvas.width = outputWidth;
   canvas.height = outputHeight;
   const context = canvas.getContext("2d", { alpha: file.type === "image/png" });
+  if (!context) {
+    bitmap.close?.();
+    throw new Error("The browser could not prepare the crop. Try uploading the original image.");
+  }
   context.drawImage(
     bitmap,
     sourceX,
@@ -189,7 +228,8 @@ async function adminCropImageFile(file, targetAspect, focusX, focusY) {
 }
 
 function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUpload }) {
-  const [aspect, setAspect] = React.useState(file.type === "image/gif" ? "original" : "1");
+  const animated = file.type === "image/gif" || inspection?.animated;
+  const [aspect, setAspect] = React.useState("original");
   const [focusX, setFocusX] = React.useState(0.5);
   const [focusY, setFocusY] = React.useState(0.5);
   const [altText, setAltText] = React.useState(initialAltText);
@@ -200,6 +240,8 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
   const dialogRef = React.useRef(null);
   const altRef = React.useRef(null);
   const titleId = React.useId();
+  const actionRef = React.useRef({ processing, onCancel });
+  actionRef.current = { processing, onCancel };
 
   React.useEffect(() => {
     const url = URL.createObjectURL(file);
@@ -211,9 +253,10 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
     const previousFocus = document.activeElement;
     altRef.current?.focus();
     const onKeyDown = (event) => {
-      if (event.key === "Escape" && !processing) {
+      if (event.key === "Escape" && !actionRef.current.processing) {
         event.preventDefault();
-        onCancel();
+        event.stopImmediatePropagation();
+        actionRef.current.onCancel();
         return;
       }
       if (event.key !== "Tab") return;
@@ -231,14 +274,15 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
         first.focus();
       }
     };
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown, true);
     return () => {
-      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keydown", onKeyDown, true);
       previousFocus?.focus?.();
     };
-  }, [processing, onCancel]);
+  }, []);
 
   const upload = async () => {
+    if (actionRef.current.processing) return;
     const normalizedAltText = altText.trim();
     if (!normalizedAltText) {
       setError("Alternative text is required before this image can be uploaded.");
@@ -266,7 +310,7 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
     ? String(aspect)
     : aspect === "1" ? "1 / 1" : aspect === String(4 / 3) ? "4 / 3" : "16 / 9";
 
-  return (
+  return ReactDOM.createPortal(
     <div className="admin-crop-backdrop" role="presentation">
       <div
         ref={dialogRef}
@@ -310,22 +354,24 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
               key={value}
               type="button"
               className={aspect === value ? "active" : ""}
-              disabled={file.type === "image/gif" && value !== "original"}
+              disabled={processing || (animated && value !== "original")}
+              aria-pressed={aspect === value}
               onClick={() => setAspect(value)}
             >
               {label}
             </button>
           ))}
         </div>
+        {animated && <p className="admin-note">Animated images keep their original frames. Cropping is available for static PNG, JPG, and WebP images.</p>}
         {aspect !== "original" && (
           <div className="admin-grid two">
             <label className="admin-field">
               <span>Horizontal focus</span>
-              <input type="range" min="0" max="1" step="0.01" value={focusX} onChange={(event) => setFocusX(Number(event.target.value))} />
+              <input type="range" min="0" max="1" step="0.01" disabled={processing} value={focusX} onChange={(event) => setFocusX(Number(event.target.value))} />
             </label>
             <label className="admin-field">
               <span>Vertical focus</span>
-              <input type="range" min="0" max="1" step="0.01" value={focusY} onChange={(event) => setFocusY(Number(event.target.value))} />
+              <input type="range" min="0" max="1" step="0.01" disabled={processing} value={focusY} onChange={(event) => setFocusY(Number(event.target.value))} />
             </label>
           </div>
         )}
@@ -359,7 +405,8 @@ function AdminCropDialog({ file, inspection, initialAltText = "", onCancel, onUp
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -504,7 +551,14 @@ async function adminFetchMediaPage(offset = 0, limit = 50) {
     p_limit: Math.min(100, Math.max(1, Number(limit) || 50)),
   });
   if (error) throw error;
-  const items = await Promise.all((data?.items || []).map(adminAttachMediaPreview));
+  const items = await Promise.all((data?.items || []).map(async (record) => {
+    try {
+      return await adminAttachMediaPreview(record);
+    } catch (error) {
+      // A failed or interrupted upload must not make the entire library unusable.
+      return { ...adminNormalizeMediaRecord(record), preview_url: "", preview_error: error.message || "Preview unavailable" };
+    }
+  }));
   return { items, count: Number(data?.count || items.length) };
 }
 
@@ -730,6 +784,7 @@ function AdminImageUpload({
   altText = "",
   onAltTextChange,
   onChange,
+  disabled = false,
 }) {
   const permissions = React.useContext(ADMIN_MEDIA_PERMISSIONS);
   const [drag, setDrag] = React.useState(false);
@@ -740,6 +795,10 @@ function AdminImageUpload({
   const [previewUrl, setPreviewUrl] = React.useState("");
   const [fieldError, setFieldError] = React.useState("");
   const inputRef = React.useRef();
+  const fieldRef = React.useRef(null);
+  const canChange = permissions.canUpload && !disabled;
+  const busy = loading || validating;
+  const permitsChange = () => canChange && !fieldRef.current?.closest("fieldset[disabled]");
 
   React.useEffect(() => {
     let active = true;
@@ -772,7 +831,8 @@ function AdminImageUpload({
   }, [value]);
 
   const queue = async (file) => {
-    if (!permissions.canUpload) {
+    if (!file || busy || pendingFile) return;
+    if (!permitsChange()) {
       setFieldError("Your role cannot upload or replace media.");
       return;
     }
@@ -789,6 +849,7 @@ function AdminImageUpload({
   };
 
   const handle = async (file, metadata, onProgress) => {
+    if (!permitsChange()) throw new Error("Editing is currently disabled for this image.");
     setLoading(true);
     setFieldError("");
     try {
@@ -802,30 +863,36 @@ function AdminImageUpload({
       return true;
     } catch (error) {
       setFieldError(error.message || "The image could not be uploaded.");
-      return false;
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="admin-field admin-image-field">
+    <div ref={fieldRef} className="admin-field admin-image-field" aria-busy={busy}>
       <span>{label}</span>
       <span className="admin-upload-security-note">Draft uploads stay private until a Publisher or Owner publishes them.</span>
+      <span className="admin-resource-limits">{ADMIN_MEDIA_LIMITS_LABEL}</span>
       {value ? (
-        <div className="admin-image-preview-wrap">
+        <div className={`admin-image-preview-wrap${drag ? " admin-resource-drop-active" : ""}`}
+          onDragOver={(event) => { event.preventDefault(); if (permitsChange() && !busy) setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(event) => { event.preventDefault(); setDrag(false); queue(event.dataTransfer.files?.[0]); }}
+        >
           {previewUrl ? (
             <img src={previewUrl} alt={altText || "Selected media preview"} className="admin-image-preview" />
           ) : (
             <div className="admin-image-preview-placeholder" role="status">Private preview unavailable</div>
           )}
-          {permissions.canUpload && (
+          {canChange && (
             <div className="admin-image-actions">
               <button type="button" className="admin-mini-button" disabled={loading || validating} onClick={() => inputRef.current?.click()}>Replace</button>
               <button type="button" className="admin-mini-button" disabled={loading || validating} onClick={() => setShowPicker(!showPicker)}>
                 {showPicker ? "Hide library" : "Pick from library"}
               </button>
               <button type="button" className="admin-mini-button danger" disabled={loading || validating} onClick={() => {
+                if (!permitsChange()) return;
                 if (window.confirm("Remove this image from the draft field? The media asset will remain in the library.")) {
                   onChange("");
                 }
@@ -836,6 +903,7 @@ function AdminImageUpload({
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 className="admin-visually-hidden"
                 aria-label={`Replace ${label}`}
+                disabled={busy || !canChange}
                 onChange={(event) => {
                   queue(event.target.files?.[0]);
                   event.target.value = "";
@@ -844,10 +912,10 @@ function AdminImageUpload({
             </div>
           )}
         </div>
-      ) : permissions.canUpload ? (
+      ) : canChange ? (
         <div
           className={`admin-upload-zone${drag ? " drag" : ""}`}
-          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+          onDragOver={(e) => { e.preventDefault(); if (permitsChange() && !busy) setDrag(true); }}
           onDragLeave={() => setDrag(false)}
           onDrop={(e) => { e.preventDefault(); setDrag(false); queue(e.dataTransfer.files[0]); }}
         >
@@ -865,7 +933,7 @@ function AdminImageUpload({
           <div className="admin-upload-hint">
             {validating ? "Validating image…" : loading ? "Uploading securely…" : "Drop image or click · PNG, JPG, WebP, GIF · max 3 MiB"}
           </div>
-          <button type="button" className="admin-mini-button" onClick={() => setShowPicker(!showPicker)} style={{marginTop:8}}>
+          <button type="button" className="admin-mini-button" disabled={busy} aria-expanded={showPicker} onClick={() => setShowPicker(!showPicker)} style={{marginTop:8}}>
             {showPicker ? "Hide library" : "Pick from library"}
           </button>
         </div>
@@ -874,7 +942,8 @@ function AdminImageUpload({
       )}
 
       {showPicker && (
-        <AdminImagePicker current={value} onPick={(record) => {
+        <AdminImagePicker current={value} disabled={!canChange || busy} onPick={(record) => {
+          if (!permitsChange()) return;
           onChange(record.reference_token);
           onAltTextChange?.(record.alt_text);
           setShowPicker(false);
@@ -898,13 +967,16 @@ function AdminImageUpload({
 }
 
 // ─── Library picker (inline) ──────────────────────────────────────────────────
-function AdminImagePicker({ current, onPick }) {
+function AdminImagePicker({ current, onPick, disabled = false }) {
   const [uploads, setUploads] = React.useState(null);
   const [loadError, setLoadError] = React.useState("");
+  const [query, setQuery] = React.useState("");
+  const [status, setFilterStatus] = React.useState("all");
+  const [reload, setReload] = React.useState(0);
 
   React.useEffect(() => {
     let active = true;
-    adminLoadMediaCatalog()
+    adminLoadMediaCatalog(reload > 0)
       .then((records) => {
         if (!active) return;
         setUploads(records);
@@ -916,20 +988,28 @@ function AdminImagePicker({ current, onPick }) {
         setUploads([]);
       });
     return () => { active = false; };
-  }, []);
+  }, [reload]);
 
   if (!uploads) {
     return <div className="admin-media-state" role="status">Loading private media library…</div>;
   }
   if (loadError) {
-    return <div className="admin-inline-error" role="alert">{loadError}</div>;
+    return <div className="admin-inline-error" role="alert">{loadError}<button type="button" className="admin-mini-button" onClick={() => { setUploads(null); setLoadError(""); setReload((value) => value + 1); }}>Retry library</button></div>;
   }
   if (!uploads.length) {
     return <div className="admin-media-state">No media assets yet. Upload an image above first.</div>;
   }
+  const available = uploads.filter((record) => record.preview_url && ["staged", "promoting", "published", "legacy"].includes(record.status));
+  const filtered = adminFilterMedia(available, query, status);
   return (
-    <div className="admin-image-picker" aria-label="Media library">
-      {uploads.map((u) => (
+    <div className="admin-resource-picker">
+      <div className="admin-resource-search">
+        <label className="admin-field"><span>Search resources</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Image name or alternative text" /></label>
+        <label className="admin-field"><span>Visibility</span><select value={status} onChange={(event) => setFilterStatus(event.target.value)}><option value="all">All resources</option><option value="draft">Draft</option><option value="published">Published</option></select></label>
+      </div>
+      <p className="admin-resource-count" role="status">{filtered.length} of {available.length} resources. Select an image to reuse it here.</p>
+      <div className="admin-image-picker" aria-label="Media library">
+      {filtered.map((u) => (
         <button
           key={u.asset_id}
           type="button"
@@ -938,11 +1018,15 @@ function AdminImagePicker({ current, onPick }) {
           title={`${u.name}: ${u.alt_text}`}
           aria-label={`Use ${u.name}. ${u.alt_text}`}
           aria-pressed={u.reference_token === current}
+          disabled={disabled}
         >
-          <img src={u.preview_url} alt="" />
+          <img src={u.preview_url} alt="" loading="lazy" decoding="async" />
+          <span className="admin-resource-filename">{u.name}</span>
           <span>{u.status === "published" ? "Published" : "Draft"}</span>
         </button>
       ))}
+      </div>
+      {!filtered.length && <div className="admin-media-state">No resources match this search. Try another name or visibility filter.</div>}
     </div>
   );
 }
@@ -953,6 +1037,7 @@ function AdminMediaCard({ record, canManage, referencedByWorkingCopy = false, on
   const [savingAlt, setSavingAlt] = React.useState(false);
   const [usage, setUsage] = React.useState(null);
   const [usageLoading, setUsageLoading] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
 
   React.useEffect(() => setAltText(record.alt_text || ""), [record.alt_text]);
   const changed = altText.trim() !== String(record.alt_text || "").trim();
@@ -962,6 +1047,7 @@ function AdminMediaCard({ record, canManage, referencedByWorkingCopy = false, on
   const canResumeDeletion = record.status === "deleting";
 
   const saveAlt = async () => {
+    if (!canManage || savingAlt) return;
     setSavingAlt(true);
     try {
       const updated = await adminUpdateMediaAltText(record, altText);
@@ -990,8 +1076,11 @@ function AdminMediaCard({ record, canManage, referencedByWorkingCopy = false, on
   };
 
   return (
-    <article className="admin-upload-card">
-      <img src={record.preview_url} alt={record.alt_text} className="admin-upload-img" />
+    <article className={`admin-upload-card${expanded ? " admin-resource-expanded" : ""}`}>
+      {record.preview_url ? <button type="button" className="admin-resource-preview-toggle" aria-expanded={expanded} aria-label={`${expanded ? "Reduce" : "Enlarge"} preview of ${record.name}`} onClick={() => setExpanded((value) => !value)}>
+        <img src={record.preview_url} alt={record.alt_text} className="admin-upload-img" loading="lazy" decoding="async" />
+        <span>{expanded ? "Reduce preview" : "Enlarge preview"}</span>
+      </button> : <div className="admin-media-state">Preview unavailable. Refresh to try again.</div>}
       <div className="admin-upload-meta">
         <div className="admin-upload-card-heading">
           <div className="admin-upload-name" title={record.name}>{record.name}</div>
@@ -1029,10 +1118,11 @@ function AdminMediaCard({ record, canManage, referencedByWorkingCopy = false, on
         </label>
       </div>
       <div className="admin-upload-card-actions">
-        <button type="button" className="admin-mini-button" onClick={() => {
-          navigator.clipboard.writeText(record.reference_token)
-            .then(() => setStatus("Private media reference copied."))
-            .catch(() => setStatus("Copy failed.", true));
+        <button type="button" className="admin-mini-button" onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(record.reference_token);
+            setStatus("Media reference copied.");
+          } catch (_) { setStatus("Copy failed. Select this image from an image field's resource library to reuse it.", true); }
         }}>Copy reference</button>
         <button type="button" className="admin-mini-button" disabled={usageLoading} onClick={toggleUsage}>
           {usageLoading ? "Loading usage…" : usage ? "Hide usage" : "Show usage"}
@@ -1071,6 +1161,16 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
   const [validating, setValidating] = React.useState(false);
   const [pendingFiles, setPendingFiles] = React.useState([]);
   const [deletingId, setDeletingId] = React.useState("");
+  const [query, setQuery] = React.useState("");
+  const [filterStatus, setFilterStatus] = React.useState("all");
+  const [filterType, setFilterType] = React.useState("all");
+  const [page, setPage] = React.useState(1);
+  const [queueError, setQueueError] = React.useState("");
+  const filtered = React.useMemo(() => adminFilterMedia(uploads, query, filterStatus, filterType), [uploads, query, filterStatus, filterType]);
+  const pageSize = 24;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visibleUploads = filtered.slice((Math.min(page, pageCount) - 1) * pageSize, Math.min(page, pageCount) * pageSize);
+  React.useEffect(() => setPage(1), [query, filterStatus, filterType]);
 
   const fetchUploads = async () => {
     setLoading(true);
@@ -1090,11 +1190,13 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
   React.useEffect(() => { fetchUploads(); }, []);
 
   const queueFiles = async (files) => {
+    if (validating || pendingFiles.length) return;
     if (!canManage) {
       setStatus("Your role has read-only media access.", true);
       return;
     }
     setValidating(true);
+    setQueueError("");
     const accepted = [];
     const rejected = [];
     for (const file of Array.from(files || [])) {
@@ -1105,7 +1207,7 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
       }
     }
     setPendingFiles((current) => [...current, ...accepted]);
-    if (rejected.length) setStatus(rejected.join(" "), true);
+    if (rejected.length) { setQueueError(rejected.join(" ")); setStatus(rejected.join(" "), true); }
     else if (accepted.length > 1) setStatus(`${accepted.length} images validated. Add required alt text to each image.`);
     setValidating(false);
   };
@@ -1156,7 +1258,7 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
         {canManage ? (
           <div
             className={`admin-upload-zone admin-upload-zone-lg${drag ? " drag" : ""}`}
-            onDragOver={(event) => { event.preventDefault(); setDrag(true); }}
+            onDragOver={(event) => { event.preventDefault(); if (!validating && !pendingFiles.length) setDrag(true); }}
             onDragLeave={() => setDrag(false)}
             onDrop={(event) => {
               event.preventDefault();
@@ -1168,7 +1270,7 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
               multiple
-              disabled={validating}
+              disabled={validating || pendingFiles.length > 0}
               aria-label="Upload images to the private media library"
               onChange={(event) => {
                 queueFiles(event.target.files);
@@ -1185,6 +1287,14 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
         ) : (
           <div className="admin-media-state">Your role can inspect media but cannot upload, edit, or delete it.</div>
         )}
+        <p className="admin-resource-limits">{ADMIN_MEDIA_LIMITS_LABEL} Select a resource from an image editor to reuse it on the website.</p>
+        {pendingFiles.length > 0 && <p className="admin-resource-count" role="status">{pendingFiles.length} image{pendingFiles.length === 1 ? "" : "s"} remaining to prepare and upload.</p>}
+        {queueError && <div className="admin-inline-error" role="alert">{queueError}</div>}
+        <div className="admin-resource-search">
+          <label className="admin-field"><span>Search resources</span><input type="search" value={query} placeholder="Search name or alternative text" onChange={(event) => setQuery(event.target.value)} /></label>
+          <label className="admin-field"><span>Visibility</span><select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value)}><option value="all">All resources</option><option value="draft">Draft</option><option value="published">Published</option></select></label>
+          <label className="admin-field"><span>Image format</span><select value={filterType} onChange={(event) => setFilterType(event.target.value)}><option value="all">All formats</option>{Object.entries(ADMIN_MEDIA_TYPES).map(([type, extension]) => <option key={type} value={type}>{extension.toUpperCase()}</option>)}</select></label>
+        </div>
 
         {loadError && (
           <div className="admin-inline-error" role="alert">
@@ -1196,13 +1306,15 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
           <div className="admin-empty" role="status"><p>Loading secure media…</p></div>
         ) : !loadError && uploads.length === 0 ? (
           <div className="admin-empty"><p>No media assets yet. Upload an image above to get started.</p></div>
+        ) : filtered.length === 0 ? (
+          <div className="admin-media-state" role="status">No resources match your search. Try a different name or filter.</div>
         ) : (
           <div className="admin-uploads-grid">
-            {uploads.map((record) => (
+            {visibleUploads.map((record) => (
               <AdminMediaCard
                 key={record.asset_id}
                 record={record}
-                canManage={canManage}
+                canManage={canManage && !deletingId}
                 referencedByWorkingCopy={workingReferences.has(record.reference_token)}
                 setStatus={setStatus}
                 onUpdated={(updated) => setUploads((current) => current.map(
@@ -1213,6 +1325,11 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
             ))}
           </div>
         )}
+        {!loading && filtered.length > 0 && <div className="admin-resource-pagination">
+          <span role="status">{filtered.length} matching resources · Page {Math.min(page, pageCount)} of {pageCount}</span>
+          <button type="button" className="admin-mini-button" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous resources</button>
+          <button type="button" className="admin-mini-button" disabled={page >= pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next resources</button>
+        </div>}
         <p className="admin-note">
           Draft bytes stay in authenticated private storage. Publishing promotes referenced assets to immutable public paths; signed preview URLs are temporary and are never saved into content.
         </p>
@@ -1225,6 +1342,7 @@ function AdminUploadsPage({ setStatus, canManage, workingReferences = new Set() 
           inspection={pendingFiles[0].inspection}
           onCancel={removePendingFile}
           onUpload={async (file, metadata, onProgress) => {
+            if (!canManage) throw new Error("Your role has read-only media access.");
             const record = await adminUploadFileToStorage(file, {
               altText: metadata.altText,
               onProgress,
@@ -3555,7 +3673,7 @@ function AdminDashboard({
   );
 }
 
-function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccessRevoked, onClose }) {
+function AdminPanel({ enabled = true, open, content, onSave, onPreview, onWorkspaceDraft, onAccessRevoked, onClose }) {
   const sb = window.PortfolioSupabase;
   const [profile, setProfile] = React.useState(null);
   const [authChecking, setAuthChecking] = React.useState(true);
@@ -3588,6 +3706,13 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
   const [livePreviewError, setLivePreviewError] = React.useState("");
   const [status, setStatusState] = React.useState("");
   const [statusIsError, setStatusIsError] = React.useState(false);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [editorPreview, setEditorPreview] = React.useState(false);
+  const [selection, setSelection] = React.useState(null);
+  const mutationVersionRef = React.useRef(0);
+  const leavingRef = React.useRef(false);
+  const workspaceRequestRef = React.useRef(0);
+  const workspaceWasOpenRef = React.useRef(false);
   const [lastSavedAt, setLastSavedAt] = React.useState(null);
   const statusTimerRef = React.useRef(null);
   const authRequestRef = React.useRef(0);
@@ -3632,7 +3757,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
     setStatusState(message);
     setStatusIsError(isError);
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-    if (message) {
+    if (message && !isError) {
       statusTimerRef.current = setTimeout(() => setStatusState(""), 3500);
     }
   };
@@ -3642,6 +3767,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
     if (!target) return;
     setJumpTarget(value);
     setActiveTab(target.tab);
+    setDrawerOpen(true);
     if (!["uploads", "history", "staff", "data"].includes(target.tab)) {
       setPreviewTarget(target.preview);
     }
@@ -3651,6 +3777,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
   };
 
   const activateTab = (tab) => {
+    setSelection(null);
     const preferred = jumpTargets.find((item) => item.tab === tab);
     if (preferred) navigateAdmin(preferred.value);
   };
@@ -3664,6 +3791,10 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
     authRequestRef.current += 1;
     authorizedUserIdRef.current = null;
     setProfile(null);
+    workspaceRequestRef.current += 1;
+    setDrawerOpen(false);
+    setEditorPreview(false);
+    setSelection(null);
     setDraft(publicSnapshot);
     setSavedDraft(adminClone(publicSnapshot));
     setPublishedContent(adminClone(publicSnapshot));
@@ -3846,11 +3977,54 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
     return () => window.removeEventListener("beforeunload", warnBeforeUnload);
   }, [open, unlocked, dirty]);
 
+  // Keep private previews in memory, and only supply them after verified Auth
+  // and the active database role have authorized loadAuthorizedState.
+  React.useEffect(() => {
+    if (!open || !unlocked) return undefined;
+    workspaceWasOpenRef.current = true;
+    const requestId = ++workspaceRequestRef.current;
+    setLivePreviewBusy(true);
+    const timer = window.setTimeout(async () => {
+      try {
+        const next = adminCollectMediaReferences(draft).size
+          ? await adminHydrateMediaPreviewContent(draft)
+          : draft;
+        if (requestId !== workspaceRequestRef.current) return;
+        onWorkspaceDraft?.(adminClone(next));
+        setLivePreviewError("");
+      } catch (error) {
+        if (requestId === workspaceRequestRef.current) setLivePreviewError(error.message || "Draft preview could not be updated.");
+      } finally {
+        if (requestId === workspaceRequestRef.current) setLivePreviewBusy(false);
+      }
+    }, 100);
+    return () => { clearTimeout(timer); workspaceRequestRef.current += 1; };
+  }, [open, unlocked, draft, onWorkspaceDraft]);
+
+  React.useEffect(() => {
+    if (!open && workspaceWasOpenRef.current) {
+      workspaceWasOpenRef.current = false;
+      setDrawerOpen(false);
+      onAccessRevoked?.();
+    }
+    if (open) leavingRef.current = false;
+  }, [open, onAccessRevoked]);
+
+  React.useEffect(() => {
+    if (!open || !unlocked) return undefined;
+    const guard = (event) => {
+      if (!leavingRef.current && dirty && !window.confirm("Leave the editor with unsaved changes? Save your draft first to keep it after reload.")) event.preventDefault();
+    };
+    window.addEventListener("portfolio-leave-editor", guard);
+    return () => window.removeEventListener("portfolio-leave-editor", guard);
+  }, [open, unlocked, dirty]);
+
   const mutate = (producer) => {
     if (!canEdit) {
       setStatus("Your viewer role is read-only.", true);
       return;
     }
+    mutationVersionRef.current += 1;
     setDraft((current) => {
       const next = adminClone(current);
       producer(next);
@@ -4255,6 +4429,8 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
       return;
     }
     setSaving(true);
+    const savingVersion = mutationVersionRef.current;
+    const savingUser = authorizedUserIdRef.current;
     try {
       const nextFieldErrors = adminCollectFieldErrors(draft);
       const validationError = adminValidateContent(draft);
@@ -4272,14 +4448,15 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
         return;
       }
       const result = await window.PortfolioContent.saveDraft(normalized, draftRevision);
+      if (!savingUser || savingUser !== authorizedUserIdRef.current) return;
       const nextDraft = adminClone(result.draft);
-      setDraft(nextDraft);
+      if (savingVersion === mutationVersionRef.current) setDraft(nextDraft);
       setSavedDraft(adminClone(nextDraft));
       setDraftRevision(result.draftRevision);
-      setDirty(false);
+      setDirty(savingVersion !== mutationVersionRef.current);
       setFieldErrors({});
       setLastSavedAt(result.updatedAt ? new Date(result.updatedAt) : new Date());
-      setStatus("Draft saved. Publish it when it is ready for the public site.");
+      setStatus(savingVersion === mutationVersionRef.current ? "Draft saved. Publish it when it is ready for the public site." : "Draft saved. Newer changes still need saving.");
     } catch (err) {
       const message = err.message || "unknown error";
       setStatus(
@@ -4399,24 +4576,8 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
   };
 
   const preview = async () => {
-    const nextFieldErrors = adminCollectFieldErrors(draft);
-    const validationError = adminValidateContent(draft);
-    if (validationError) {
-      revealValidationErrors(nextFieldErrors);
-      setStatus(validationError, true);
-      return;
-    }
-    const normalized = adminNormalize(draft);
-    if (livePreviewEnabled) stopLivePreview({ restore: false });
-    try {
-      setStatus("Preparing private draft preview…");
-      const hydrated = adminCollectMediaReferences(normalized).size
-        ? await adminHydrateMediaPreviewContent(normalized)
-        : normalized;
-      onPreview(adminClone(hydrated), { ...previewTarget, keepOpen: false });
-    } catch (error) {
-      setStatus("Preview could not be prepared: " + (error.message || "unknown error"), true);
-    }
+    setDrawerOpen(false);
+    setEditorPreview(true);
   };
 
   const reset = () => {
@@ -4456,21 +4617,22 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
 
   const requestClose = () => {
     if (dirty && !window.confirm("Close the admin panel with unsaved changes?")) return;
+    leavingRef.current = true;
     if (livePreviewEnabled || livePreviewActiveRef.current) stopLivePreview({ restore: true });
     onClose();
   };
 
   React.useEffect(() => {
-    if (!open) return undefined;
+    if (!open || (unlocked && !drawerOpen)) return undefined;
     returnFocusRef.current = document.activeElement;
     return () => {
       returnFocusRef.current?.focus?.();
       returnFocusRef.current = null;
     };
-  }, [open]);
+  }, [open, unlocked, drawerOpen]);
 
   React.useEffect(() => {
-    if (!open) return undefined;
+    if (!open || (unlocked && !drawerOpen)) return undefined;
     const timer = window.setTimeout(() => {
       const focusTarget = (!unlocked && !authChecking ? loginEmailRef.current : null)
         || dialogRef.current?.querySelector(
@@ -4479,7 +4641,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
       focusTarget?.focus?.();
     }, 0);
     return () => clearTimeout(timer);
-  }, [open, authChecking, unlocked]);
+  }, [open, authChecking, unlocked, drawerOpen]);
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -4489,7 +4651,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
         event.preventDefault();
         save();
       }
-      if (event.key === "Tab") {
+      if (event.key === "Tab" && (!unlocked || drawerOpen)) {
         const focusable = Array.from(dialogRef.current?.querySelectorAll(
           'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
         ) || []).filter((element) => element.getClientRects().length > 0);
@@ -4508,11 +4670,14 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
           }
         }
       }
-      if (event.key === "Escape" && !document.querySelector(".admin-crop-dialog")) requestClose();
+      if (event.key === "Escape" && !document.querySelector(".admin-crop-dialog")) {
+        if (drawerOpen) { event.preventDefault(); setDrawerOpen(false); }
+        else if (!unlocked) requestClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, unlocked, dirty, draft, draftRevision, canEdit]);
+  }, [open, unlocked, dirty, draft, draftRevision, canEdit, drawerOpen]);
 
   const login = async (event) => {
     event.preventDefault();
@@ -4547,6 +4712,7 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
   };
 
   const logout = async () => {
+    if (dirty && !window.confirm("Sign out and discard unsaved changes? Save draft first to keep your work.")) return;
     let signOutError = null;
     if (sb) {
       try {
@@ -4578,6 +4744,29 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
     setLoginError("");
     setStatus("Admin locked.");
   };
+
+  const selectElement = (nextSelection) => {
+    if (!unlocked || !canEdit) return;
+    const target = jumpTargets.find((item) => item.value === nextSelection.target);
+    if (!target) return;
+    setSelection(nextSelection);
+    navigateAdmin(target.value);
+  };
+  const mediaLocation = selection?.mediaPath
+    ? window.PortfolioWorkspaceUtils.mediaLocation(draft, selection.mediaPath)
+    : null;
+  const mediaAltKey = selection?.mediaPath?.includes("gallery_images") ? "alt" : "cover_alt";
+  const updateSelectedMedia = (value, isAlt) => mutate((next) => {
+    const location = window.PortfolioWorkspaceUtils.mediaLocation(next, selection.mediaPath);
+    if (!location) return;
+    if (isAlt) {
+      // Icons and SEO images have no alt leaf in the persisted v1 contract.
+      if (!["icon_url", "ogImage"].includes(location.key)) location.record[mediaAltKey] = value;
+    } else {
+      location.record[location.key] = value;
+      if (selection.mediaPath[0] === "projects" && location.key === "image_url" && !selection.mediaPath.includes("gallery_images")) location.record.image = value;
+    }
+  });
 
   if (!open || !enabled) return null;
 
@@ -4616,108 +4805,56 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
       canEditMetadata: canEdit,
       canDelete: canEdit,
     }}>
-    <div className="admin-overlay">
-      <div ref={dialogRef} className="admin-shell" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title">
-        <aside className="admin-sidebar">
-          <div>
-            <div className="admin-kicker">Portfolio CMS</div>
-            <h2 id="admin-panel-title">
-              Admin Panel
-              {dirty && <span className="admin-dirty-dot" title="Unsaved changes"></span>}
-            </h2>
-            <div className="admin-note">
-              {profile.email || "Signed in"} · {profile.role}
-            </div>
+    <div className="visual-admin-workspace">
+      {editorPreview ? (
+        <div className="visual-preview-return">
+          <span>Private draft preview</span>
+          <button type="button" onClick={() => setEditorPreview(false)}>Exit preview</button>
+        </div>
+      ) : (
+        <div className="visual-admin-toolbar" aria-label="Raisa Studio editor">
+          <div className="visual-admin-brand"><b>{draft.site.logoMark || "R"}</b><span>{draft.site.brandName}<small>{profile.role} ? Draft r{draftRevision}</small></span></div>
+          <div className="visual-admin-mode" role="group" aria-label="View mode">
+            <button type="button" aria-pressed={!editorPreview} onClick={() => { setEditorPreview(false); setDrawerOpen(false); }}>Edit mode</button>
+            <button type="button" onClick={preview} disabled={livePreviewBusy}>Preview</button>
           </div>
-          <nav className="admin-tabs" role="tablist" aria-orientation="vertical" aria-label="Admin sections">
-            {[
-              ["dashboard", "⌂", "Dashboard"],
-              ["site",    "⊙", "Site"],
-              ["graphic", "◈", "Graphic"],
-              ["webdev",  "‹›", "Software Dev"],
-              ["cases",   "▤", "Cases"],
-              ["uploads", "⊞", "Uploads"],
-              ["history", "↺", "History"],
-              ["data",    "≡", "Data"],
-              ...(canManageStaff ? [["staff", "+", "Staff"]] : []),
-            ].map(([key, icon, label]) => (
-              <button type="button" role="tab" id={`admin-tab-${key}`} aria-controls="admin-tabpanel" aria-selected={activeTab === key} key={key} className={activeTab === key ? "active" : ""} onClick={() => activateTab(key)}>
-                <span className="admin-tab-icon">{icon}</span>
-                {label}
-              </button>
-            ))}
-          </nav>
-          <div className="admin-sidebar-actions">
-            <button type="button" className="admin-secondary" onClick={logout}>Sign out</button>
-            <button type="button" className="admin-secondary" onClick={requestClose}>Close</button>
+          <button type="button" onClick={() => activateTab("uploads")}>Resources</button>
+          <button type="button" onClick={() => activateTab("site")}>Settings</button>
+          <button type="button" disabled={!canEdit || saving || publishing || unpublishing || !dirty} onClick={save}>{saving ? "Saving?" : "Save draft"}</button>
+          <button type="button" className="visual-publish" disabled={!canPublish || saving || publishing || unpublishing || dirty} title={!canPublish ? "Owner or Publisher access required" : dirty ? "Save your draft before publishing" : "Publish the saved draft"} onClick={publish}>{publishing ? "Publishing?" : "Publish"}</button>
+          <button type="button" onClick={logout} disabled={saving || publishing || unpublishing}>Sign out</button>
+          <div className="visual-save-status" role="status" aria-live="polite">{statusIsError ? status : saving ? "Saving draft?" : publishing ? "Publishing?" : dirty ? "Unsaved changes" : `Draft saved ? ${publicEnabled ? "Published r" + publishedRevision : "Site unpublished"}`}{livePreviewBusy && " ? Updating view"}</div>
+        </div>
+      )}
+      {!editorPreview && window.PortfolioVisualEditor && React.createElement(window.PortfolioVisualEditor, {
+        enabled: !drawerOpen, canEdit, onSelect: selectElement,
+      })}
+      {livePreviewError && <div className="visual-preview-error" role="alert">Preview: {livePreviewError} Your draft is retained. <button type="button" onClick={() => setDraft(adminClone(draft))}>Retry preview</button></div>}
+      {drawerOpen && !editorPreview && <div className="visual-admin-drawer-backdrop" onClick={(event) => { if (event.target === event.currentTarget) setDrawerOpen(false); }}>
+      <div ref={dialogRef} className="admin-shell visual-admin-drawer" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title">
+        <header className="visual-drawer-header">
+          <div><span className="admin-kicker">{selection ? "Edit on your website" : "Studio settings"}</span><h2 id="admin-panel-title">{selection?.label || ({ site: "Brand & settings", uploads: "Resources", graphic: "Graphic studio", webdev: "Software studio", cases: "Case studies", history: "Revision history", staff: "Staff access", data: "Technology & data", dashboard: "Publication overview" }[activeTab])}</h2></div>
+          <button type="button" className="admin-secondary" aria-label="Close editor panel" onClick={() => setDrawerOpen(false)}>Close</button>
+        </header>
+        <div className="visual-drawer-navigation">
+          <label>Manage content<select className="admin-select" value={activeTab} onChange={(event) => activateTab(event.target.value)}>
+            {[["site", "Brand, navigation, contact & SEO"], ["graphic", "Graphic studio"], ["webdev", "Software studio"], ["cases", "Case studies"], ["uploads", "Resources"], ["history", "Revision history"], ["data", "Technology & data"], ["dashboard", "Publication overview"], ...(canManageStaff ? [["staff", "Staff access"]] : [])].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select></label>
+          <div className="visual-drawer-actions">
+            <button type="button" className="admin-secondary" disabled={saving || publishing || unpublishing} onClick={reloadDraft}>Reload saved draft</button>
+            <button type="button" className="admin-secondary" disabled={!canEdit || !dirty || saving || publishing} onClick={() => { if (!window.confirm("Discard unsaved changes and return to the saved draft?")) return; mutationVersionRef.current += 1; setDraft(adminClone(savedDraft)); setDirty(false); setFieldErrors({}); }}>Discard changes</button>
+            <button type="button" className="admin-secondary" onClick={requestClose}>Leave editor</button>
+            {activeTab === "dashboard" && canPublish && publicEnabled && <button type="button" className="admin-danger" disabled={saving || publishing || unpublishing} onClick={unpublishSite}>Unpublish site</button>}
           </div>
-        </aside>
-
-        <main className="admin-main" id="admin-tabpanel" role="tabpanel" aria-labelledby={`admin-tab-${activeTab}`}>
-          <div className="admin-toolbar">
-            <div>
-              <strong>
-                {publishing ? "Publishing…" : saving ? "Saving…" : dirty ? "Unsaved draft changes" : "Draft saved"}
-              </strong>
-              <span>
-                {lastSavedAt
-                  ? `Draft r${draftRevision} · saved ${lastSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · published r${publishedRevision}`
-                  : `Draft r${draftRevision} · published r${publishedRevision}`}
-              </span>
-            </div>
-            <div className="admin-toolbar-navigation">
-              <label>
-                <span>Jump to page / section</span>
-                <select className="admin-select" value={jumpTarget} onChange={(event) => navigateAdmin(event.target.value)}>
-                  {jumpTargets.map((target) => <option key={target.value} value={target.value}>{target.label}</option>)}
-                </select>
-              </label>
-              <label className="admin-live-preview-toggle">
-                <input
-                  type="checkbox"
-                  checked={livePreviewEnabled}
-                  onChange={(event) => {
-                    if (event.target.checked) {
-                      setLivePreviewEnabled(true);
-                      setLivePreviewError("");
-                    } else {
-                      stopLivePreview({ restore: true });
-                    }
-                  }}
-                />
-                <span>Live preview</span>
-                <small>{livePreviewBusy ? "Updating..." : livePreviewEnabled ? "On" : "Off"}</small>
-              </label>
-            </div>
-            <div className="admin-toolbar-actions">
-              <button type="button" className="admin-secondary" disabled={saving || publishing || unpublishing} onClick={reloadDraft}>
-                Reload
-              </button>
-              <button type="button" className="admin-secondary" disabled={!canEdit || saving || publishing || unpublishing || !dirty} onClick={() => {
-                setDraft(adminClone(savedDraft));
-                setDirty(false);
-                setFieldErrors({});
-                setStatus("Unsaved draft changes discarded.");
-              }}>Discard draft</button>
-              <button type="button" className="admin-secondary" onClick={preview} disabled={saving || publishing || unpublishing}>
-                Preview
-              </button>
-              <button type="button" className="admin-secondary" onClick={save} disabled={!canEdit || saving || publishing || unpublishing || !dirty}>
-                {saving ? "Saving…" : "Save draft"}
-              </button>
-              {canPublish && publicEnabled && (
-                <button type="button" className="admin-danger" onClick={unpublishSite} disabled={saving || publishing || unpublishing}>
-                  {unpublishing ? "Unpublishing..." : "Unpublish site"}
-                </button>
-              )}
-              <button type="button" className="admin-primary" onClick={publish} disabled={!canPublish || saving || publishing || unpublishing || dirty}>
-                {publishing ? "Publishing…" : "Publish"}
-              </button>
-            </div>
-          </div>
-
-          {livePreviewError && <div className="admin-inline-error admin-live-preview-error" role="alert">Live preview: {livePreviewError}</div>}
-
+          {selection && <button type="button" className="admin-secondary" onClick={() => setSelection(null)}>Show all fields in this section</button>}
+        </div>
+        <main className="admin-main" id="admin-tabpanel">
+          {selection?.action === "media" && mediaLocation ? (
+            <fieldset className="admin-editor-fieldset" disabled={!canEdit}>
+              <AdminImageUpload label={selection.label || "Replace image"} value={mediaLocation.value || ""} altText={mediaLocation.record[mediaAltKey] || ""} onAltTextChange={(value) => updateSelectedMedia(value, true)} onChange={(value) => updateSelectedMedia(value, false)} />
+              <p className="admin-note">Upload a replacement or reuse a verified resource. Changes stay in your draft until saved and published.</p>
+            </fieldset>
+          ) : <>
           {!canEdit && (
             <div className="admin-error" style={{ margin: "0 0 16px" }}>
               Viewer access is read-only. You can inspect content, uploads, and history but cannot change them.
@@ -4978,9 +5115,11 @@ function AdminPanel({ enabled = true, open, content, onSave, onPreview, onAccess
               />
             </div>
           )}
+          </>}
         </main>
       </div>
-      {status && (
+      </div>}
+      {status && !editorPreview && (
         <div
           className={"admin-toast" + (statusIsError ? " error" : "")}
           role={statusIsError ? "alert" : "status"}

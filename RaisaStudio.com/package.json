@@ -1,0 +1,35 @@
+{
+  "name": "raisa-studio-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "npm test",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "preview": "node scripts/preview.mjs dist",
+    "dev": "npm run build && node scripts/preview.mjs dist",
+    "verify:browser": "node scripts/verify-browser.mjs",
+    "verify:editor": "npm run build && node scripts/verify-editor.mjs",
+    "typecheck:edge": "deno check --no-config --node-modules-dir=manual supabase/functions/verify-portfolio-media/index.ts",
+    "seed:generate": "node scripts/generate-portfolio-seed.mjs --write",
+    "seed:check": "node scripts/generate-portfolio-seed.mjs --check"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@imagemagick/magick-wasm": "0.0.41",
+    "esbuild": "0.25.12",
+    "framer-motion": "11.0.0",
+    "playwright-core": "1.62.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.111.0",
+    "gsap": "3.12.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three": "0.160.1"
+  }
+}

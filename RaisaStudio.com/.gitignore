@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+preview.*.log
+portfolio-hostinger.zip
+.vscode/
+.claude/
+.DS_Store

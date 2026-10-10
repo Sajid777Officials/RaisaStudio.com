@@ -1,0 +1,84 @@
+/* Editor controls are a portal: no wrappers, offsets, or typography changes to
+   the shared public website. Removing this layer restores the exact preview. */
+.visual-editor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10500;
+  pointer-events: none;
+  color: #0b1b3a;
+  font: 12px/1.4 "Space Grotesk", sans-serif;
+  letter-spacing: normal;
+}
+.visual-editor-layer * { box-sizing: border-box; }
+.visual-editor-layer button,
+.visual-editor-layer select { font: inherit; color: inherit; }
+.visual-editor-layer button { cursor: pointer; }
+.visual-editor-layer button:disabled { cursor: default; opacity: .45; }
+.visual-editor-layer button:focus-visible,
+.visual-editor-layer select:focus-visible { outline: 3px solid #ffbf47; outline-offset: 3px; }
+.visual-editor-picker {
+  position: fixed;
+  top: var(--visual-editor-safe-top, 86px);
+  right: 12px;
+  width: min(292px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid rgba(11, 27, 58, .25);
+  border-radius: 12px;
+  background: #faf7f1;
+  box-shadow: 0 5px 22px rgba(11, 27, 58, .16);
+  pointer-events: auto;
+}
+.visual-editor-picker label { display: block; margin-bottom: 5px; font-size: 11px; font-weight: 700; }
+.visual-editor-picker-row { display: flex; gap: 6px; }
+.visual-editor-picker select {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid #a2a8b2;
+  border-radius: 5px;
+  padding: 7px;
+  background: white;
+}
+.visual-editor-picker-row button {
+  min-width: 44px;
+  border: 0;
+  border-radius: 5px;
+  padding: 7px 10px;
+  background: #0b1b3a;
+  color: white;
+  font-weight: 600;
+}
+.visual-editor-picker > span { display: block; margin-top: 6px; font-size: 10px; color: #4d596d; }
+.visual-editor-outline {
+  position: fixed;
+  border: 2px solid #c8102e;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .85);
+  pointer-events: none;
+}
+.visual-editor-actions { position: fixed; display: flex; max-width: calc(100vw - 16px); gap: 4px; pointer-events: auto; }
+.visual-editor-actions button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(11, 27, 58, .2);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.visual-editor-edit { color: white !important; background: #b40e2a; }
+.visual-editor-replace { background: #faf7f1; }
+.visual-editor-action-label { max-width: 136px; overflow: hidden; text-overflow: ellipsis; }
+@media (pointer: coarse) {
+  .visual-editor-layer button, .visual-editor-layer select { min-height: 44px; }
+}
+@media (max-width: 640px) {
+  .visual-editor-picker { top: var(--visual-editor-safe-top, 78px); width: 224px; right: 8px; padding: 7px 8px; }
+  .visual-editor-picker > span { display: none; }
+  .visual-editor-action-label { display: none; }
+  .visual-editor-actions button { min-height: 40px; }
+}
+@media print { .visual-editor-layer { display: none; } }

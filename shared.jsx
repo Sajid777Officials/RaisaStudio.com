@@ -42,11 +42,11 @@ function Nav({ onDark, onSplit, onContact, onHome, onGraphic, onWebdev, onAbout,
 
   return (
     <header className={"nav" + (onDark ? " on-dark" : "") + (onSplit ? " on-split" : "")}>
-      <button type="button" className="nav-logo" onClick={onHome} aria-label={`Return to ${brand} home`}>
+      <button type="button" className="nav-logo" data-edit-target="site" data-edit-field="brand" data-edit-label="Brand identity" onClick={onHome} aria-label={`Return to ${brand} home`}>
         <div className="logo-mark">{mark}</div>
         <div>{brand}<span style={{ fontFamily: "Fraunces, serif", fontStyle: "italic", fontWeight: 400, marginLeft: 6, opacity: 0.6 }}>{trademark}</span></div>
       </button>
-      <nav className="nav-links" aria-label="Primary navigation">
+      <nav className="nav-links" data-edit-target="site" data-edit-field="navigation" data-edit-label="Navigation" aria-label="Primary navigation">
         {navigation.map((item) => {
           const externalUrl = item.target === "external" ? sharedSafeExternalUrl(item.url) : "";
           if (externalUrl) {
@@ -92,7 +92,7 @@ function PortfolioFooter({ site, onContact, dark = false }) {
     .map((item) => ({ ...item, safeUrl: sharedSafeExternalUrl(item.url) }))
     .filter((item) => item.is_visible !== false && item.safeUrl);
   return (
-    <footer className={"portfolio-footer" + (dark ? " dark" : "")}>
+    <footer className={"portfolio-footer" + (dark ? " dark" : "")} data-edit-target="site" data-edit-field="footer" data-edit-label="Footer">
       <div>
         <div className="portfolio-footer-eyebrow">{footer.eyebrow || "Graphic design x software development"}</div>
         <h2>{footer.tagline || "Thoughtful identities and production-ready digital products, built under one roof."}</h2>
@@ -100,7 +100,7 @@ function PortfolioFooter({ site, onContact, dark = false }) {
       <div className="portfolio-footer-actions">
         <button type="button" onClick={onContact}>{footer.contactLabel || "Start a project"}</button>
         {socialLinks.length > 0 && (
-          <div className="portfolio-footer-socials">
+          <div className="portfolio-footer-socials" data-edit-target="site" data-edit-field="social" data-edit-label="Social links">
             {socialLinks.map((item) => (
               <a key={item.id || item.label} href={item.safeUrl} target="_blank" rel="noopener noreferrer">
                 {item.label}
@@ -109,7 +109,7 @@ function PortfolioFooter({ site, onContact, dark = false }) {
           </div>
         )}
         {(email || phone || location) && (
-          <address className="portfolio-footer-contact">
+          <address className="portfolio-footer-contact" data-edit-target="site" data-edit-field="contact" data-edit-label="Contact details">
             {email && <a href={`mailto:${email}`}>{email}</a>}
             {phone && <a href={phoneHref}>{phone}</a>}
             {location && <span>{location}</span>}

@@ -1,0 +1,42 @@
+{
+  "simulatedBackend": true,
+  "scenarios": [
+    {
+      "name": "authorized editor loads with usable contextual controls",
+      "passed": true
+    },
+    {
+      "name": "unsaved edits preview privately and save without publishing",
+      "passed": true
+    },
+    {
+      "name": "edits made during a pending save remain dirty and survive",
+      "passed": true
+    },
+    {
+      "name": "failed saves retain work and retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "contextual selection edits the exact work record",
+      "passed": true
+    },
+    {
+      "name": "gallery upload preserves both the media reference and its alt text",
+      "passed": true
+    },
+    {
+      "name": "stat editing retains focus and renders decimal and formatted values",
+      "passed": true
+    },
+    {
+      "name": "publish, restore, and unpublish preserve their distinct operations",
+      "passed": true
+    },
+    {
+      "name": "sign-out clears the private workspace and viewer controls are read-only",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

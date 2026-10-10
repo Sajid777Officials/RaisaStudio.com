@@ -81,7 +81,7 @@ function GraphicProjectThumb({ project, category, galleryId }) {
   const palette = GD_PAL[project.pal] || GD_PAL[(category?.icon || 0) % GD_PAL.length] || GD_PAL[0];
 
   return (
-    <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")}>
+    <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")} data-edit-target="graphic-projects" data-edit-side="graphic" data-edit-id={project.id} data-edit-field="image_url" data-edit-label={`${project.title} image`} data-edit-media-path={JSON.stringify(["projects", "graphic", project.id, "image_url"])}>
       {image
         ? <img src={image} alt={project.cover_alt || project.title} data-image-gallery={galleryId || undefined} data-gallery-caption={project.short_description || project.title} />
         : <Thumb palette={palette} title={project.title} num={project.num || String(project.sort_order || 1).padStart(2, "0")} />
@@ -142,7 +142,7 @@ function GraphicProjectModal({ project, category, onClose }) {
 
   return (
     <div ref={dialogRef} className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="project-lightbox-title" tabIndex="-1" onClick={onClose}>
-      <div className="project-lightbox-panel" onClick={(event) => event.stopPropagation()}>
+      <div className="project-lightbox-panel" data-edit-target="graphic-projects" data-edit-side="graphic" data-edit-id={project.id} data-edit-label={project.title} onClick={(event) => event.stopPropagation()}>
         <button ref={closeRef} type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close project preview">
           <GdClose size={16} sw={2.2} />
         </button>
@@ -175,7 +175,7 @@ function GraphicProjectModal({ project, category, onClose }) {
                 if (!src) return null;
                 const caption = typeof item === "string" ? alt : (item.caption || alt);
                 return (
-                  <button type="button" key={`${src}-${index}`} data-gallery-trigger aria-label={`Open ${alt}`}>
+                  <button type="button" key={`${src}-${index}`} data-edit-target="graphic-projects" data-edit-side="graphic" data-edit-id={project.id} data-edit-field="gallery_images" data-edit-label={`${project.title} gallery image ${index + 1}`} data-edit-media-path={JSON.stringify(["projects", "graphic", project.id, "gallery_images", index, ...(typeof item === "string" ? [] : ["image_url"])])} data-gallery-trigger aria-label={`Open ${alt}`}>
                     <img src={src} alt={alt} data-image-gallery={galleryId} data-gallery-caption={caption} />
                   </button>
                 );
@@ -298,12 +298,12 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
   return (
     <div ref={pageRef} className={"page page-graphic" + (visible ? " visible" : "")}>
       <div className="page-scroll">
-        <div className="page-topbar">
+        <div className="page-topbar" data-edit-target="graphic-hero" data-edit-side="graphic" data-edit-field="backLabel" data-edit-label="Studio navigation labels">
           <button type="button" className="back-btn" onClick={onBack}><GdArrowLeft size={18} sw={2} />{studio.backLabel ?? "Back to hero"}</button>
           <div className="crumb">{studio.crumbLabel ?? "Index / Studio A - Graphic Design"}</div>
         </div>
 
-        <div className="page-hero">
+        <div className="page-hero" data-edit-target="graphic-hero" data-edit-side="graphic" data-edit-field="pageTitlePre" data-edit-label="Graphic studio introduction">
           <div>
             <div className="page-eyebrow"><span className="dot"></span>{studio.pageEyebrow || "Studio A - Graphic Design"}</div>
             <h1 className="page-title">
@@ -312,10 +312,10 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
             </h1>
           </div>
           <div>
-            <p className="page-lede">
+            <p className="page-lede" data-edit-target="graphic-hero" data-edit-field="pageLede" data-edit-label="Studio description">
               {studio.pageLede || "Ten focused disciplines delivered with print-ready files and a process you can stand behind."}
             </p>
-            <div className="page-stats">
+            <div className="page-stats" data-edit-target="graphic-hero" data-edit-field="pageStats" data-edit-label="Studio statistics">
               {(studio.pageStats || []).map((stat) => (
                 <div key={stat.label}>
                   <div className="stat-num">{stat.value}<span className="accent">{stat.suffix}</span></div>
@@ -326,7 +326,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
         </div>
 
-        <div className="section" hidden={studio.showServices === false}>
+        <div className="section" data-edit-target="graphic-services" data-edit-side="graphic" data-edit-label="Graphic services and categories" hidden={studio.showServices === false}>
           <div className="section-head">
             <h2>{studio.servicesTitle ?? "Services"} <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>{studio.servicesSubtitle ?? "/ ten disciplines"}</em></h2>
             <div className="section-meta">{studio.servicesMeta || "Click a category to brief us"}</div>
@@ -341,13 +341,14 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                   type="button"
                   role="tab"
                   className={"service-card" + (isActive ? " active" : "")}
+                  data-edit-target="graphic-services" data-edit-id={service.id} data-edit-label={`${service.name || service.title} category`}
                   onClick={() => selectCategory(service)}
                   aria-selected={isActive}
                   aria-controls="graphic-project-showcase"
                 >
                   <div>
                     <div className="svc-num">{service.num}</div>
-                    <div className="svc-icon">
+                    <div className="svc-icon" data-edit-target="graphic-services" data-edit-field="icon_url" data-edit-label={`${service.name || service.title} icon`} data-edit-media-path={JSON.stringify(["services", "graphic", service.id, "icon_url"])}>
                       {service.icon_url
                         ? <img className="svc-icon-img" src={service.icon_url} alt="" />
                         : <Icon size={36} sw={1.5} />
@@ -365,7 +366,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
 
           {activeCategory && (
-            <div ref={showcaseRef} id="graphic-project-showcase" className="project-showcase" role="tabpanel" aria-live="polite">
+            <div ref={showcaseRef} id="graphic-project-showcase" className="project-showcase" data-edit-target="graphic-projects" data-edit-side="graphic" data-edit-label={`${selectedCategory?.name || "Category"} projects`} role="tabpanel" aria-live="polite">
               <div className="project-showcase-top">
                 <button type="button" className="project-back-btn" onClick={clearCategory}>
                   <GdArrowLeft size={14} sw={2} /> {studio.allServicesLabel ?? "All services"}
@@ -401,7 +402,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                       const projectCategory = categoryMap[project.category_id] || selectedCategory;
                       const projectDate = gdFormatDate(project.project_date);
                       return (
-                        <article key={project.id} className="category-project-card" style={{ "--reveal-delay": `${index * 60}ms` }}>
+                        <article key={project.id} data-edit-target="graphic-projects" data-edit-side="graphic" data-edit-id={project.id} data-edit-label={project.title} className="category-project-card" style={{ "--reveal-delay": `${index * 60}ms` }}>
                           <button
                             type="button"
                             className="category-project-image"
@@ -449,7 +450,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           )}
         </div>
 
-        <div className="portfolio-section" hidden={studio.showPortfolio === false}>
+        <div className="portfolio-section" data-edit-target="graphic-work" data-edit-side="graphic" data-edit-label="Graphic portfolio" hidden={studio.showPortfolio === false}>
           <div className="section-head">
             <div>
               {works.length > 0 && <div className="portfolio-count">{works.length} {works.length === 1 ? "project" : "projects"}</div>}
@@ -476,7 +477,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                 c.style.transform = "";
               };
               return (
-                <div key={work.id}
+                <div key={work.id} data-edit-target="graphic-work" data-edit-id={work.id} data-edit-label={work.title}
                      className={"work-card span-" + (work.span || 4) + (!canOpenCase ? " case-unavailable" : "")}
                      style={{ gridColumn: `span ${work.span || 4}` }}
                      role={canOpenCase ? "button" : undefined}
@@ -491,7 +492,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
                      }}
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
-                  <div className="work-thumb">
+                  <div className="work-thumb" data-edit-target="graphic-work" data-edit-field="cover_image_url" data-edit-label={`${work.title} cover image`} data-edit-media-path={JSON.stringify(["works", "graphic", work.id, "cover_image_url"])}>
                     <div className={"work-thumb-inner" + (coverImage ? " has-upload" : "")}>
                       {coverImage
                         ? <img src={coverImage} alt={work.cover_alt || work.title} loading="lazy" />
@@ -518,7 +519,7 @@ function GraphicPage({ visible, onBack, onOpenCase, onContact, content, activeSe
           </div>
         </div>
 
-        <div className="about-section" id="about" hidden={studio.showAbout === false}>
+        <div className="about-section" id="about" data-edit-target="graphic-about" data-edit-side="graphic" data-edit-label="About the graphic studio" hidden={studio.showAbout === false}>
           <div>
             <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
             <h2>{studio.aboutTitle || "A focused studio for brands that need to look intentional everywhere."}</h2>

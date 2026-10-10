@@ -248,6 +248,9 @@ function HeroPanel({ side, panelClass, extraClass, isExpanded, onEnter, onLeave,
   return (
     <div
       ref={panelRef}
+      data-edit-target={`${side}-hero`}
+      data-edit-side={side}
+      data-edit-label={`${side === "graphic" ? "Graphic" : "Software"} home hero`}
       className={"hero-panel " + panelClass + (extraClass ? " " + extraClass : "")}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
@@ -267,30 +270,30 @@ function HeroPanel({ side, panelClass, extraClass, isExpanded, onEnter, onLeave,
       {side === "webdev"  && <PanelParticles panelRef={panelRef} r={250} g={247} b={241} />}
       <div className="hero-inner">
         <div>
-          <div className="panel-eyebrow">
+          <div className="panel-eyebrow" data-edit-target={`${side}-hero`} data-edit-field="heroEyebrow" data-edit-label="Hero eyebrow">
             <span className="bar"></span>
             {eyebrow}
           </div>
-          <h1 className="panel-title">
+          <h1 className="panel-title" data-edit-target={`${side}-hero`} data-edit-field="heroTitleTop" data-edit-label="Hero title">
             <span className="stack"><Letters text={titleTop} /></span>
             <span className="stack">
               <em><Letters text={titleEm} /></em>
               <Letters text={titleSuffix} />
             </span>
           </h1>
-          <p className="panel-sub">{sub}</p>
-          <div className="tag-cloud">
+          <p className="panel-sub" data-edit-target={`${side}-hero`} data-edit-field="heroSub" data-edit-label="Hero description">{sub}</p>
+          <div className="tag-cloud" data-edit-target={`${side}-services`} data-edit-label="Hero service labels">
             {services.map((s) => (
               <span key={s} className={tagClass}>{s}</span>
             ))}
           </div>
         </div>
         <div className="panel-foot">
-          <button className="panel-cta" onClick={(e) => { e.stopPropagation(); onExpand(); }}>
+          <button className="panel-cta" data-edit-target={`${side}-hero`} data-edit-field="heroCta" data-edit-label="Hero button" onClick={(e) => { e.stopPropagation(); onExpand(); }}>
             {cta}
             <span className="arrow"><ArrowOut size={20} sw={2} /></span>
           </button>
-          <div className="panel-meta">
+          <div className="panel-meta" data-edit-target={`${side}-hero`} data-edit-field="heroStats" data-edit-label="Hero statistics">
             {stats.map((stat) => (
               <div className="stat" key={stat.label}>
                 <div className="stat-num">

@@ -88,7 +88,7 @@ function WebDevProjectThumb({ project, category, galleryId }) {
   const palette = WD_PAL[project.pal] || WD_PAL[(category?.icon || 0) % WD_PAL.length] || WD_PAL[0];
 
   return (
-    <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")}>
+    <div className={"category-project-thumb-inner" + (image ? " has-upload" : "")} data-edit-target="webdev-projects" data-edit-side="webdev" data-edit-id={project.id} data-edit-field="image_url" data-edit-label={`${project.title} image`} data-edit-media-path={JSON.stringify(["projects", "webdev", project.id, "image_url"])}>
       {image
         ? <img src={image} alt={project.cover_alt || project.title} data-image-gallery={galleryId || undefined} data-gallery-caption={project.short_description || project.title} />
         : <Thumb palette={palette} title={project.title} num={project.num || String(project.sort_order || 1).padStart(2, "0")} />
@@ -149,7 +149,7 @@ function WebDevProjectModal({ project, category, onClose }) {
 
   return (
     <div ref={dialogRef} className="project-lightbox" role="dialog" aria-modal="true" aria-labelledby="webdev-project-lightbox-title" tabIndex="-1" onClick={onClose}>
-      <div className="project-lightbox-panel" onClick={(event) => event.stopPropagation()}>
+      <div className="project-lightbox-panel" data-edit-target="webdev-projects" data-edit-side="webdev" data-edit-id={project.id} data-edit-label={project.title} onClick={(event) => event.stopPropagation()}>
         <button ref={closeRef} type="button" className="project-lightbox-close" onClick={onClose} aria-label="Close build preview">
           <WdClose size={16} sw={2.2} />
         </button>
@@ -182,7 +182,7 @@ function WebDevProjectModal({ project, category, onClose }) {
                 const alt = typeof item === "string" ? `${project.title} gallery ${index + 1}` : (item.alt_text || item.alt || `${project.title} gallery ${index + 1}`);
                 const caption = typeof item === "string" ? alt : (item.caption || alt);
                 return (
-                  <button type="button" key={`${src}-${index}`} data-gallery-trigger aria-label={`Open ${alt}`}>
+                  <button type="button" key={`${src}-${index}`} data-edit-target="webdev-projects" data-edit-side="webdev" data-edit-id={project.id} data-edit-field="gallery_images" data-edit-label={`${project.title} gallery image ${index + 1}`} data-edit-media-path={JSON.stringify(["projects", "webdev", project.id, "gallery_images", index, ...(typeof item === "string" ? [] : ["image_url"])])} data-gallery-trigger aria-label={`Open ${alt}`}>
                     <img src={src} alt={alt} data-image-gallery={galleryId} data-gallery-caption={caption} />
                   </button>
                 );
@@ -217,7 +217,7 @@ function GitHubProjects({ settings }) {
   if (!username || settings?.enabled === false || err || (repos && repos.length === 0)) return null;
 
   return (
-    <div className="github-section section">
+    <div className="github-section section" data-edit-target="data" data-edit-field="github" data-edit-label="GitHub integration">
       <div className="section-head">
         <div>
           <div className="portfolio-count">{settings?.eyebrow || "Live - syncs automatically"}</div>
@@ -404,12 +404,12 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
   return (
     <div ref={pageRef} className={"page page-webdev" + (visible ? " visible" : "")}>
       <div className="page-scroll">
-        <div className="page-topbar">
+        <div className="page-topbar" data-edit-target="webdev-hero" data-edit-side="webdev" data-edit-field="backLabel" data-edit-label="Studio navigation labels">
           <button type="button" className="back-btn" onClick={onBack}><WdArrowLeft size={18} sw={2} />{studio.backLabel ?? "Back to hero"}</button>
           <div className="crumb">{studio.crumbLabel ?? "Index / Studio B - Software Development"}</div>
         </div>
 
-        <div className="page-hero">
+        <div className="page-hero" data-edit-target="webdev-hero" data-edit-side="webdev" data-edit-field="pageTitlePre" data-edit-label="Software studio introduction">
           <div>
             <div className="page-eyebrow"><span className="dot"></span>{studio.pageEyebrow || "Studio B - Software Development"}</div>
             <h1 className="page-title">
@@ -418,10 +418,10 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
             </h1>
           </div>
           <div>
-            <p className="page-lede">
+            <p className="page-lede" data-edit-target="webdev-hero" data-edit-field="pageLede" data-edit-label="Studio description">
               {studio.pageLede || "We ship production code with measurable performance and a tidy handoff."}
             </p>
-            <div className="page-stats">
+            <div className="page-stats" data-edit-target="webdev-hero" data-edit-field="pageStats" data-edit-label="Studio statistics">
               {(studio.pageStats || []).map((stat, i) => (
                 <div key={stat.label}>
                   <div className="stat-num">
@@ -435,7 +435,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
         </div>
 
-        <div className="tech-rail" hidden={studio.showTechStack === false}>
+        <div className="tech-rail" data-edit-target="webdev-hero" data-edit-side="webdev" data-edit-field="techStack" data-edit-label="Technology stack" hidden={studio.showTechStack === false}>
           <div className="tech-rail-label">{studio.stackLabel ?? "Stack -"}</div>
           <div className="tech-rail-marquee">
             <div className="tech-rail-track">
@@ -453,7 +453,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
         </div>
 
-        <div className="section" hidden={studio.showServices === false}>
+        <div className="section" data-edit-target="webdev-services" data-edit-side="webdev" data-edit-label="Software services and categories" hidden={studio.showServices === false}>
           <div className="section-head">
             <h2 style={{ color: "white" }}>{studio.servicesTitle ?? "Services"} <em style={{ fontFamily: "Fraunces, serif", fontWeight: 400, fontStyle: "italic", opacity: 0.5 }}>{studio.servicesSubtitle ?? "/ ten disciplines"}</em></h2>
             <div className="section-meta">{studio.servicesMeta || "Click a category to scope work"}</div>
@@ -468,13 +468,14 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                   type="button"
                   role="tab"
                   className={"service-card" + (isActive ? " active" : "")}
+                  data-edit-target="webdev-services" data-edit-id={service.id} data-edit-label={`${service.name || service.title} category`}
                   onClick={() => selectCategory(service)}
                   aria-selected={isActive}
                   aria-controls="webdev-project-showcase"
                 >
                   <div>
                     <div className="svc-num">{service.num}</div>
-                    <div className="svc-icon">
+                    <div className="svc-icon" data-edit-target="webdev-services" data-edit-field="icon_url" data-edit-label={`${service.name || service.title} icon`} data-edit-media-path={JSON.stringify(["services", "webdev", service.id, "icon_url"])}>
                       {service.icon_url
                         ? <img className="svc-icon-img" src={service.icon_url} alt="" />
                         : <Icon size={36} sw={1.5} />
@@ -490,7 +491,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           </div>
 
           {activeCategory && (
-            <div ref={showcaseRef} id="webdev-project-showcase" className="project-showcase" role="tabpanel" aria-live="polite">
+            <div ref={showcaseRef} id="webdev-project-showcase" className="project-showcase" data-edit-target="webdev-projects" data-edit-side="webdev" data-edit-label={`${selectedCategory?.name || "Category"} projects`} role="tabpanel" aria-live="polite">
               <div className="project-showcase-top">
                 <button type="button" className="project-back-btn" onClick={clearCategory}>
                   <WdArrowLeft size={14} sw={2} /> {studio.allServicesLabel ?? "All services"}
@@ -526,7 +527,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                       const projectCategory = categoryMap[project.category_id] || selectedCategory;
                       const projectDate = wdFormatDate(project.project_date);
                       return (
-                        <article key={project.id} className="category-project-card" style={{ "--reveal-delay": `${index * 60}ms` }}>
+                        <article key={project.id} data-edit-target="webdev-projects" data-edit-side="webdev" data-edit-id={project.id} data-edit-label={project.title} className="category-project-card" style={{ "--reveal-delay": `${index * 60}ms` }}>
                           <button
                             type="button"
                             className="category-project-image"
@@ -575,7 +576,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
           )}
         </div>
 
-        <div className="portfolio-section" hidden={studio.showPortfolio === false}>
+        <div className="portfolio-section" data-edit-target="webdev-work" data-edit-side="webdev" data-edit-label="Software portfolio" hidden={studio.showPortfolio === false}>
           <div className="section-head">
             <div>
               {works.length > 0 && <div className="portfolio-count">{works.length} {works.length === 1 ? "project" : "projects"}</div>}
@@ -602,7 +603,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                 c.style.transform = "";
               };
               return (
-                <div key={work.id}
+                <div key={work.id} data-edit-target="webdev-work" data-edit-id={work.id} data-edit-label={work.title}
                      className={"work-card span-" + (work.span || 4) + (!canOpenCase ? " case-unavailable" : "")}
                      style={{ gridColumn: `span ${work.span || 4}` }}
                      role={canOpenCase ? "button" : undefined}
@@ -617,7 +618,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
                      }}
                      onMouseMove={tilt}
                      onMouseLeave={untilt}>
-                  <div className="work-thumb">
+                  <div className="work-thumb" data-edit-target="webdev-work" data-edit-field="cover_image_url" data-edit-label={`${work.title} cover image`} data-edit-media-path={JSON.stringify(["works", "webdev", work.id, "cover_image_url"])}>
                     <div className={"work-thumb-inner" + (coverImage ? " has-upload" : "")}>
                       {coverImage
                         ? <img src={coverImage} alt={work.cover_alt || work.title} loading="lazy" />
@@ -648,7 +649,7 @@ function WebDevPage({ visible, onBack, onOpenCase, onContact, content, activeSec
 
         <GitHubProjects settings={content.integrations?.github} />
 
-        <div className="about-section" id="about-webdev" hidden={studio.showAbout === false}>
+        <div className="about-section" id="about-webdev" data-edit-target="webdev-about" data-edit-side="webdev" data-edit-label="About the software studio" hidden={studio.showAbout === false}>
           <div>
             <div className="about-kicker">{studio.aboutEyebrow || "About us"}</div>
             <h2>{studio.aboutTitle || "A software studio for fast, usable products that keep working after launch."}</h2>

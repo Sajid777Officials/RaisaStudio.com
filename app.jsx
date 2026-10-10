@@ -93,7 +93,7 @@ function getFullscreenImage(target) {
   const galleryTrigger = target?.closest?.("[data-gallery-trigger]");
   const img = target?.closest?.("img") || galleryTrigger?.querySelector?.("img");
   if (!img) return null;
-  if (img.closest(".global-image-viewer, .admin-overlay, .admin-shell, .twk-panel, .loading-screen, .nav")) return null;
+  if (img.closest(".global-image-viewer, .admin-overlay, .admin-shell, .visual-admin-drawer, .visual-admin-toolbar, .twk-panel, .loading-screen, .nav")) return null;
   if (img.closest(".svc-icon") || img.classList.contains("svc-icon-img")) return null;
   // These images live inside navigation controls. Let the card/button open its
   // project first; the gallery is available from inside the project view.
@@ -611,7 +611,17 @@ function App() {
 
   // Listen to popstate (browser back/forward + our go() calls)
   useEffect(() => {
-    const sync = () => setRoute(parseHash());
+    const sync = () => {
+      const next = parseHash();
+      if (!next.admin) {
+        const guard = new CustomEvent("portfolio-leave-editor", { cancelable: true });
+        if (!window.dispatchEvent(guard)) {
+          history.pushState(null, "", `/admin${window.location.search}`);
+          return;
+        }
+      }
+      setRoute(next);
+    };
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
@@ -857,6 +867,8 @@ function App() {
     contentRequestRef.current = requestId;
     setPreviewMode(false);
     setAdminPreviewRoute(null);
+    // Remove private data immediately, even when the public request is slow.
+    setContent(window.PortfolioContent.load());
     try {
       const published = await window.PortfolioContent.loadAsync();
       if (requestId === contentRequestRef.current) setContent(published);
@@ -865,6 +877,12 @@ function App() {
         setContent(window.PortfolioContent.load());
       }
     }
+  }, []);
+  const showWorkspaceDraft = useCallback((nextDraft) => {
+    contentRequestRef.current += 1;
+    setContent(nextDraft);
+    setPreviewMode(true);
+    setAdminPreviewRoute((current) => current || { view: null, caseId: null, section: null, admin: false });
   }, []);
   useEffect(() => {
     if (!previewMode || adminOpen) return undefined;
@@ -1050,10 +1068,11 @@ function App() {
           content={content}
           onSave={(nextContent) => {
             contentRequestRef.current += 1;
-            setPreviewMode(false);
-            setAdminPreviewRoute(null);
-            setContent(nextContent);
+            // Publishing refreshes visitors via the public subscription. Keep
+            // the authorized editing workspace on its current page and draft.
+            if (!adminOpen) setContent(nextContent);
           }}
+          onWorkspaceDraft={showWorkspaceDraft}
           onPreview={previewDraft}
           onAccessRevoked={restorePublishedContent}
           onClose={closeAdmin}
